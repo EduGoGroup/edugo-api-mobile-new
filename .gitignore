@@ -1,0 +1,81 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test files
+*.test
+*.out
+
+# Go compiled
+*.o
+*.a
+
+# Coverage
+*.coverprofile
+coverage.txt
+coverage.html
+coverage/
+
+# Dependencies
+/vendor/
+go.work
+go.work.sum
+
+# IDEs and editors
+.idea/
+.vscode/
+.zed/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Debug binaries
+__debug_bin*
+debug.test
+
+# Build
+build/
+_build/
+
+# CI/CD artifacts
+.github/workflows/*.log
+
+# Docker
+docker-compose.override.yml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+
+# Misc
+.envrc
+main

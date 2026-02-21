@@ -1,0 +1,90 @@
+package repository
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/google/uuid"
+
+	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
+	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
+)
+
+// MaterialRepository defines operations for materials in PostgreSQL.
+type MaterialRepository interface {
+	Create(ctx context.Context, material *pgentities.Material) error
+	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.Material, error)
+	List(ctx context.Context, filter MaterialFilter) ([]pgentities.Material, int, error)
+	Update(ctx context.Context, material *pgentities.Material) error
+	GetWithVersions(ctx context.Context, id uuid.UUID) (*pgentities.Material, []pgentities.MaterialVersion, error)
+}
+
+// MaterialFilter holds query parameters for listing materials.
+type MaterialFilter struct {
+	SchoolID *uuid.UUID
+	AuthorID *uuid.UUID
+	Status   *string
+	Limit    int
+	Offset   int
+}
+
+// AssessmentRepository defines operations for assessments in PostgreSQL.
+type AssessmentRepository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error)
+	GetByMaterialID(ctx context.Context, materialID uuid.UUID) (*pgentities.Assessment, error)
+}
+
+// AttemptRepository defines operations for assessment attempts in PostgreSQL.
+type AttemptRepository interface {
+	Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
+	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
+	GetAnswersByAttemptID(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
+	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error)
+	CountByAssessmentAndStudent(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
+}
+
+// ProgressRepository defines operations for reading progress in PostgreSQL.
+type ProgressRepository interface {
+	Upsert(ctx context.Context, progress *pgentities.Progress) error
+	GetByMaterialAndUser(ctx context.Context, materialID, userID uuid.UUID) (*pgentities.Progress, error)
+}
+
+// ScreenRepository defines operations for dynamic UI screens in PostgreSQL.
+type ScreenRepository interface {
+	GetScreenByKey(ctx context.Context, screenKey string) (*ScreenComposed, error)
+	GetScreensByResourceKey(ctx context.Context, resourceKey string) ([]ScreenComposed, error)
+	GetNavigation(ctx context.Context, scope string) ([]pgentities.Resource, []pgentities.ResourceScreen, error)
+	UpsertPreferences(ctx context.Context, screenKey, userID string, preferences json.RawMessage) error
+}
+
+// ScreenComposed is a joined view of screen template + instance.
+type ScreenComposed struct {
+	Instance pgentities.ScreenInstance
+	Template pgentities.ScreenTemplate
+}
+
+// StatsRepository defines operations for statistics queries.
+type StatsRepository interface {
+	CountMaterials(ctx context.Context, schoolID *uuid.UUID) (int, error)
+	CountCompletedProgress(ctx context.Context, schoolID *uuid.UUID) (int, error)
+	AverageAttemptScore(ctx context.Context, schoolID *uuid.UUID) (float64, error)
+	MaterialStats(ctx context.Context, materialID uuid.UUID) (*MaterialStatsResult, error)
+}
+
+// MaterialStatsResult holds computed statistics for a single material.
+type MaterialStatsResult struct {
+	TotalAttempts    int     `json:"total_attempts"`
+	AverageScore     float64 `json:"average_score"`
+	CompletionRate   float64 `json:"completion_rate"`
+	UniqueStudents   int     `json:"unique_students"`
+}
+
+// MongoAssessmentRepository defines operations for assessment questions in MongoDB.
+type MongoAssessmentRepository interface {
+	GetByMaterialID(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
+}
+
+// MongoSummaryRepository defines operations for material summaries in MongoDB.
+type MongoSummaryRepository interface {
+	GetByMaterialID(ctx context.Context, materialID string) (*mongoentities.MaterialSummary, error)
+}

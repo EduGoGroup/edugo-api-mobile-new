@@ -1,0 +1,86 @@
+package router
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/EduGoGroup/edugo-shared/common/types/enum"
+	sharedmw "github.com/EduGoGroup/edugo-shared/middleware/gin"
+
+	"github.com/EduGoGroup/edugo-api-mobile-new/internal/container"
+	"github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/http/middleware"
+)
+
+// Setup creates and configures the Gin router with all routes.
+func Setup(c *container.Container) *gin.Engine {
+	r := gin.New()
+
+	// Global middleware
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestID())
+	r.Use(middleware.CORS())
+	r.Use(middleware.Metrics())
+	r.Use(middleware.ErrorHandler(c.Logger))
+	r.Use(middleware.RequestLogging(c.Logger))
+
+	// Public endpoints
+	r.GET("/health", c.Handlers.Health.Health)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// Authenticated API v1
+	v1 := r.Group("/api/v1")
+	v1.Use(middleware.RemoteAuthMiddleware(c.AuthClient))
+
+	// Materials
+	materials := v1.Group("/materials")
+	{
+		materials.GET("", sharedmw.RequirePermission(enum.PermissionMaterialsRead), c.Handlers.Material.List)
+		materials.GET("/:id", sharedmw.RequirePermission(enum.PermissionMaterialsRead), c.Handlers.Material.GetByID)
+		materials.GET("/:id/versions", sharedmw.RequirePermission(enum.PermissionMaterialsRead), c.Handlers.Material.GetWithVersions)
+		materials.GET("/:id/download-url", sharedmw.RequirePermission(enum.PermissionMaterialsDownload), c.Handlers.Material.GenerateDownloadURL)
+		materials.GET("/:id/summary", sharedmw.RequirePermission(enum.PermissionMaterialsRead), c.Handlers.Summary.GetSummary)
+		materials.GET("/:id/assessment", sharedmw.RequirePermission(enum.PermissionAssessmentsRead), c.Handlers.Assessment.GetAssessment)
+		materials.GET("/:id/stats", sharedmw.RequirePermission(enum.PermissionStatsUnit), c.Handlers.Stats.GetMaterialStats)
+
+		materials.POST("", sharedmw.RequirePermission(enum.PermissionMaterialsCreate), c.Handlers.Material.Create)
+		materials.POST("/:id/upload-url", sharedmw.RequirePermission(enum.PermissionMaterialsCreate), c.Handlers.Material.GenerateUploadURL)
+		materials.POST("/:id/upload-complete", sharedmw.RequirePermission(enum.PermissionMaterialsCreate), c.Handlers.Material.UploadComplete)
+
+		materials.PUT("/:id", sharedmw.RequirePermission(enum.PermissionMaterialsUpdate), c.Handlers.Material.Update)
+
+		// Assessment attempts nested under material
+		materials.POST("/:id/assessment/attempts", sharedmw.RequirePermission(enum.PermissionAssessmentsAttempt), c.Handlers.Assessment.CreateAttempt)
+	}
+
+	// Attempts (top-level)
+	attempts := v1.Group("/attempts")
+	{
+		attempts.GET("/:id/results", sharedmw.RequirePermission(enum.PermissionAssessmentsViewResults), c.Handlers.Assessment.GetAttemptResult)
+	}
+
+	// Users
+	users := v1.Group("/users")
+	{
+		users.GET("/me/attempts", sharedmw.RequirePermission(enum.PermissionAssessmentsViewResults), c.Handlers.Assessment.ListUserAttempts)
+	}
+
+	// Progress
+	v1.PUT("/progress", sharedmw.RequirePermission(enum.PermissionProgressUpdate), c.Handlers.Progress.Upsert)
+
+	// Screens
+	screens := v1.Group("/screens")
+	{
+		screens.GET("/navigation", sharedmw.RequirePermission(enum.PermissionScreensRead), c.Handlers.Screen.GetNavigation)
+		screens.GET("/resource/:resourceKey", sharedmw.RequirePermission(enum.PermissionScreensRead), c.Handlers.Screen.GetScreensByResource)
+		screens.GET("/:screenKey", sharedmw.RequirePermission(enum.PermissionScreensRead), c.Handlers.Screen.GetScreen)
+		screens.PUT("/:screenKey/preferences", sharedmw.RequirePermission(enum.PermissionScreenInstancesUpdate), c.Handlers.Screen.SavePreferences)
+	}
+
+	// Stats
+	stats := v1.Group("/stats")
+	{
+		stats.GET("/global", sharedmw.RequirePermission(enum.PermissionStatsGlobal), c.Handlers.Stats.GetGlobalStats)
+	}
+
+	return r
+}

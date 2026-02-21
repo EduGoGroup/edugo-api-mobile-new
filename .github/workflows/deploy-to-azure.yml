@@ -1,0 +1,216 @@
+name: Deploy to Azure (On-Demand)
+
+# Pipeline manual para desplegar en Azure Container Apps
+# IMPORTANTE: Solo funciona desde la rama main
+#
+# Flujo de uso:
+#   1. Si necesitas imagen nueva → corre primero manual-release.yml
+#   2. Luego corre este pipeline con el tag generado (ej: v0.19.0 o latest)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag de imagen a desplegar (ej: latest, v0.19.0)"
+        required: false
+        type: string
+        default: "latest"
+
+permissions:
+  id-token: write  # OIDC con Azure (sin secretos expuestos)
+  contents: read
+  packages: read   # Para leer imágenes de GHCR
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_APP_NAME: edugo-api-mobile-new
+  CONTAINER_APP_ENV: cae-edugo-dev
+  RESOURCE_GROUP: rg-edugo-dev
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1: Validar y preparar
+  # ─────────────────────────────────────────────────────────────
+  prepare:
+    name: Preparar
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Verificar rama main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "❌ Este pipeline solo puede ejecutarse desde la rama main"
+          echo "   Rama actual: ${{ github.ref }}"
+          exit 1
+
+      - name: Establecer tag de imagen
+        id: set-tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          TAG="${TAG:-latest}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "🏷️  Desplegando imagen: ghcr.io/${{ env.IMAGE_NAME }}:$TAG"
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: Desplegar en Azure Container Apps
+  # ─────────────────────────────────────────────────────────────
+  deploy:
+    name: Desplegar en Azure Container Apps
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    steps:
+      - name: Login a Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verificar si el Container App ya existe
+        id: check-app
+        run: |
+          EXISTS=$(az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "name" -o tsv 2>/dev/null || echo "")
+
+          if [ -n "$EXISTS" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "ℹ️  Container App existente — actualizando imagen"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  Primera vez — creando Container App"
+          fi
+
+      - name: Crear Container App (primera vez)
+        if: steps.check-app.outputs.exists == 'false'
+        run: |
+          IMAGE="${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):${{ needs.prepare.outputs.image_tag }}"
+          echo "📦 Creando Container App con imagen: $IMAGE"
+
+          az containerapp create \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --environment ${{ env.CONTAINER_APP_ENV }} \
+            --image "$IMAGE" \
+            --registry-server ${{ env.REGISTRY }} \
+            --registry-username ${{ github.actor }} \
+            --registry-password "${{ secrets.GHCR_TOKEN }}" \
+            --target-port 9091 \
+            --ingress external \
+            --min-replicas 0 \
+            --max-replicas 2 \
+            --cpu 0.5 \
+            --memory 1.0Gi \
+            --secrets \
+              "db-postgres-password=${{ secrets.DATABASE_POSTGRES_PASSWORD }}" \
+              "db-mongodb-uri=${{ secrets.DATABASE_MONGODB_URI }}" \
+              "jwt-secret=${{ secrets.AUTH_JWT_SECRET }}" \
+            --env-vars \
+              "APP_ENV=development" \
+              "ENV=development" \
+              "GIN_MODE=release" \
+              "SERVER_PORT=9091" \
+              "SERVER_HOST=0.0.0.0" \
+              "SERVER_READ_TIMEOUT=30s" \
+              "SERVER_WRITE_TIMEOUT=30s" \
+              "DATABASE_POSTGRES_HOST=ep-green-frost-ado4abbi-pooler.c-2.us-east-1.aws.neon.tech" \
+              "DATABASE_POSTGRES_PORT=5432" \
+              "DATABASE_POSTGRES_USER=neondb_owner" \
+              "DATABASE_POSTGRES_PASSWORD=secretref:db-postgres-password" \
+              "DATABASE_POSTGRES_DATABASE=edugo" \
+              "DATABASE_POSTGRES_SSLMODE=require" \
+              "DATABASE_POSTGRES_MAX_CONNECTIONS=10" \
+              "DATABASE_MONGODB_URI=secretref:db-mongodb-uri" \
+              "DATABASE_MONGODB_DATABASE=edugo" \
+              "DATABASE_MONGODB_TIMEOUT=10s" \
+              "AUTH_JWT_SECRET=secretref:jwt-secret" \
+              "BOOTSTRAP_OPTIONAL_RESOURCES_RABBITMQ=true" \
+              "BOOTSTRAP_OPTIONAL_RESOURCES_S3=true" \
+              "BOOTSTRAP_OPTIONAL_RESOURCES_MONGODB=true" \
+              "MESSAGING_RABBITMQ_URL=amqp://disabled:disabled@localhost:5672/" \
+              "MESSAGING_RABBITMQ_PREFETCH_COUNT=1" \
+              "MESSAGING_RABBITMQ_QUEUES_MATERIAL_UPLOADED=material.uploaded" \
+              "MESSAGING_RABBITMQ_QUEUES_ASSESSMENT_ATTEMPT=assessment.attempt" \
+              "MESSAGING_RABBITMQ_EXCHANGES_MATERIALS=materials" \
+              "STORAGE_S3_BUCKET_NAME=edugo-materials-dev" \
+              "STORAGE_S3_REGION=us-east-1" \
+              "STORAGE_S3_ACCESS_KEY_ID=disabled" \
+              "STORAGE_S3_SECRET_ACCESS_KEY=disabled" \
+              "LOGGING_LEVEL=info" \
+              "LOGGING_FORMAT=json"
+
+          echo "✅ Container App creado"
+
+      - name: Actualizar imagen (deploys siguientes)
+        if: steps.check-app.outputs.exists == 'true'
+        run: |
+          IMAGE="${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):${{ needs.prepare.outputs.image_tag }}"
+          echo "🔄 Actualizando imagen a: $IMAGE"
+
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image "$IMAGE"
+
+          echo "✅ Imagen actualizada"
+
+      - name: Obtener URL del servicio
+        id: url
+        run: |
+          FQDN=$(az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "url=https://$FQDN" >> $GITHUB_OUTPUT
+          echo "🌐 URL: https://$FQDN"
+
+      - name: Health check
+        run: |
+          URL="${{ steps.url.outputs.url }}"
+          echo "🏥 Verificando: $URL/health"
+          echo "⏳ Esperando que el container arranque (30s)..."
+          sleep 30
+
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/health" --max-time 15 || echo "000")
+            if [ "$STATUS" == "200" ]; then
+              echo "✅ API respondiendo OK (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "   Intento $i/5: HTTP $STATUS — esperando 20s..."
+            sleep 20
+          done
+
+          echo "⚠️  El health check no respondió 200 tras 5 intentos"
+          echo "   Ver logs: az containerapp logs show -n ${{ env.CONTAINER_APP_NAME }} -g ${{ env.RESOURCE_GROUP }} --follow"
+
+      - name: Resumen del deploy
+        if: always()
+        run: |
+          TAG="${{ needs.prepare.outputs.image_tag }}"
+          URL="${{ steps.url.outputs.url }}"
+
+          echo "# 🚀 Deploy a Azure — $TAG" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Imagen** | \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Container App** | \`${{ env.CONTAINER_APP_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Resource Group** | \`${{ env.RESOURCE_GROUP }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **API** | [$URL]($URL) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Swagger** | [$URL/swagger/index.html]($URL/swagger/index.html) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Health** | [$URL/health]($URL/health) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Comandos útiles" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Logs en tiempo real" >> $GITHUB_STEP_SUMMARY
+          echo "az containerapp logs show -n ${{ env.CONTAINER_APP_NAME }} -g ${{ env.RESOURCE_GROUP }} --follow" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Estado del container" >> $GITHUB_STEP_SUMMARY
+          echo "az containerapp show -n ${{ env.CONTAINER_APP_NAME }} -g ${{ env.RESOURCE_GROUP }} --query properties.runningStatus" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

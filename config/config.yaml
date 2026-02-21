@@ -1,0 +1,55 @@
+# Configuration Base - EduGo API Mobile New
+# Common values for all environments
+
+server:
+  port: 8080
+  host: "0.0.0.0"
+  read_timeout: 30s
+  write_timeout: 30s
+
+database:
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "edugo"
+    user: "edugo"
+    # password: Set via DATABASE_POSTGRES_PASSWORD environment variable
+    max_open_conns: 25
+    max_idle_conns: 10
+    ssl_mode: "disable"
+
+  mongodb:
+    # uri: Set via DATABASE_MONGODB_URI environment variable
+    database: "edugo"
+    timeout: 10s
+
+messaging:
+  rabbitmq:
+    # url: Set via MESSAGING_RABBITMQ_URL environment variable
+    exchange: "edugo.materials"
+    prefetch_count: 10
+
+storage:
+  s3:
+    region: "us-east-1"
+    bucket: "edugo-materials"
+    # access_key_id: Set via STORAGE_S3_ACCESS_KEY_ID environment variable
+    # secret_access_key: Set via STORAGE_S3_SECRET_ACCESS_KEY environment variable
+    endpoint: "" # Optional, for Localstack
+    presign_expiry: 15m
+
+logging:
+  level: "info"
+  format: "json"
+
+auth:
+  jwt:
+    # secret: Set via AUTH_JWT_SECRET environment variable
+    issuer: "edugo-central"
+  api_admin:
+    # base_url: Set via AUTH_API_ADMIN_BASE_URL environment variable
+    timeout: 5s
+    cache_ttl: 60s
+    cache_enabled: true
+    remote_enabled: false
+    fallback_enabled: false
