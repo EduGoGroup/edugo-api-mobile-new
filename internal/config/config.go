@@ -2,46 +2,47 @@ package config
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/caarlos0/env/v11"
 )
 
 // Config holds the entire application configuration.
 type Config struct {
-	Server    ServerConfig    `mapstructure:"server"`
-	Database  DatabaseConfig  `mapstructure:"database"`
-	Messaging MessagingConfig `mapstructure:"messaging"`
-	Storage   StorageConfig   `mapstructure:"storage"`
-	Logging   LoggingConfig   `mapstructure:"logging"`
-	Auth      AuthConfig      `mapstructure:"auth"`
+	Environment string          `env:"APP_ENV"     envDefault:"development"`
+	Server      ServerConfig    `envPrefix:"SERVER_"`
+	Database    DatabaseConfig  `envPrefix:"DATABASE_"`
+	Messaging   MessagingConfig `envPrefix:"MESSAGING_"`
+	Storage     StorageConfig   `envPrefix:"STORAGE_"`
+	Logging     LoggingConfig   `envPrefix:"LOGGING_"`
+	Auth        AuthConfig      `envPrefix:"AUTH_"`
 }
 
 // ServerConfig holds HTTP server configuration.
 type ServerConfig struct {
-	Port         int           `mapstructure:"port"`
-	Host         string        `mapstructure:"host"`
-	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	Port         int           `env:"PORT"          envDefault:"8080"`
+	Host         string        `env:"HOST"          envDefault:"0.0.0.0"`
+	ReadTimeout  time.Duration `env:"READ_TIMEOUT"  envDefault:"30s"`
+	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" envDefault:"30s"`
+	SwaggerHost  string        `env:"SWAGGER_HOST"`
 }
 
 // DatabaseConfig holds database connection configuration.
 type DatabaseConfig struct {
-	Postgres PostgresConfig `mapstructure:"postgres"`
-	MongoDB  MongoDBConfig  `mapstructure:"mongodb"`
+	Postgres PostgresConfig `envPrefix:"POSTGRES_"`
+	MongoDB  MongoDBConfig  `envPrefix:"MONGODB_"`
 }
 
 // PostgresConfig holds PostgreSQL connection parameters.
 type PostgresConfig struct {
-	Host         string `mapstructure:"host"`
-	Port         int    `mapstructure:"port"`
-	Database     string `mapstructure:"database"`
-	User         string `mapstructure:"user"`
-	Password     string `mapstructure:"password"`
-	MaxOpenConns int    `mapstructure:"max_open_conns"`
-	MaxIdleConns int    `mapstructure:"max_idle_conns"`
-	SSLMode      string `mapstructure:"ssl_mode"`
+	Host         string `env:"HOST"           envDefault:"localhost"`
+	Port         int    `env:"PORT"           envDefault:"5432"`
+	Database     string `env:"DATABASE"       envDefault:"edugo"`
+	User         string `env:"USER"           envDefault:"edugo"`
+	Password     string `env:"PASSWORD,required"`
+	MaxOpenConns int    `env:"MAX_OPEN_CONNS" envDefault:"25"`
+	MaxIdleConns int    `env:"MAX_IDLE_CONNS" envDefault:"10"`
+	SSLMode      string `env:"SSL_MODE"       envDefault:"disable"`
 }
 
 // DSN returns the PostgreSQL connection string.
@@ -50,91 +51,79 @@ func (c *PostgresConfig) DSN() string {
 		c.Host, c.Port, c.User, c.Password, c.Database, c.SSLMode)
 }
 
+// GormDSN returns the PostgreSQL connection string with search_path for GORM.
+func (c *PostgresConfig) GormDSN() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s search_path=content,assessment,iam,ui_config,public",
+		c.Host, c.Port, c.User, c.Password, c.Database, c.SSLMode)
+}
+
 // MongoDBConfig holds MongoDB connection parameters.
 type MongoDBConfig struct {
-	URI      string        `mapstructure:"uri"`
-	Database string        `mapstructure:"database"`
-	Timeout  time.Duration `mapstructure:"timeout"`
+	URI      string        `env:"URI"`
+	Database string        `env:"DATABASE" envDefault:"edugo"`
+	Timeout  time.Duration `env:"TIMEOUT"  envDefault:"10s"`
 }
 
 // MessagingConfig holds RabbitMQ configuration.
 type MessagingConfig struct {
-	RabbitMQ RabbitMQConfig `mapstructure:"rabbitmq"`
+	RabbitMQ RabbitMQConfig `envPrefix:"RABBITMQ_"`
 }
 
 // RabbitMQConfig holds RabbitMQ connection parameters.
 type RabbitMQConfig struct {
-	URL           string `mapstructure:"url"`
-	Exchange      string `mapstructure:"exchange"`
-	PrefetchCount int    `mapstructure:"prefetch_count"`
+	URL           string `env:"URL"`
+	Exchange      string `env:"EXCHANGE"`
+	PrefetchCount int    `env:"PREFETCH_COUNT" envDefault:"10"`
 }
 
 // StorageConfig holds object storage configuration.
 type StorageConfig struct {
-	S3 S3Config `mapstructure:"s3"`
+	S3 S3Config `envPrefix:"S3_"`
 }
 
 // S3Config holds AWS S3 configuration.
 type S3Config struct {
-	Region         string        `mapstructure:"region"`
-	Bucket         string        `mapstructure:"bucket"`
-	AccessKeyID    string        `mapstructure:"access_key_id"`
-	SecretAccessKey string       `mapstructure:"secret_access_key"`
-	Endpoint       string        `mapstructure:"endpoint"`
-	PresignExpiry  time.Duration `mapstructure:"presign_expiry"`
+	Region         string        `env:"REGION"         envDefault:"us-east-1"`
+	Bucket         string        `env:"BUCKET"`
+	AccessKeyID    string        `env:"ACCESS_KEY_ID"`
+	SecretAccessKey string       `env:"SECRET_ACCESS_KEY"`
+	Endpoint       string        `env:"ENDPOINT"`
+	PresignExpiry  time.Duration `env:"PRESIGN_EXPIRY" envDefault:"15m"`
 }
 
 // LoggingConfig holds logger configuration.
 type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level  string `env:"LEVEL"  envDefault:"info"`
+	Format string `env:"FORMAT" envDefault:"json"`
 }
 
 // AuthConfig holds authentication configuration.
 type AuthConfig struct {
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	APIAdmin APIAdminConfig `mapstructure:"api_admin"`
+	JWT      JWTConfig      `envPrefix:"JWT_"`
+	APIAdmin APIAdminConfig `envPrefix:"API_ADMIN_"`
 }
 
 // JWTConfig holds JWT validation parameters.
 type JWTConfig struct {
-	Secret string `mapstructure:"secret"`
-	Issuer string `mapstructure:"issuer"`
+	Secret string `env:"SECRET,required"`
+	Issuer string `env:"ISSUER" envDefault:"edugo-central"`
 }
 
 // APIAdminConfig holds remote auth validation parameters.
 type APIAdminConfig struct {
-	BaseURL         string        `mapstructure:"base_url"`
-	Timeout         time.Duration `mapstructure:"timeout"`
-	CacheTTL        time.Duration `mapstructure:"cache_ttl"`
-	CacheEnabled    bool          `mapstructure:"cache_enabled"`
-	RemoteEnabled   bool          `mapstructure:"remote_enabled"`
-	FallbackEnabled bool          `mapstructure:"fallback_enabled"`
+	BaseURL         string        `env:"BASE_URL"`
+	Timeout         time.Duration `env:"TIMEOUT"          envDefault:"5s"`
+	CacheTTL        time.Duration `env:"CACHE_TTL"        envDefault:"60s"`
+	CacheEnabled    bool          `env:"CACHE_ENABLED"    envDefault:"true"`
+	RemoteEnabled   bool          `env:"REMOTE_ENABLED"   envDefault:"false"`
+	FallbackEnabled bool          `env:"FALLBACK_ENABLED" envDefault:"false"`
 }
 
-// Load reads the configuration from config files and environment variables.
+// Load parses configuration from environment variables.
 func Load() (*Config, error) {
-	viper.AddConfigPath("./config")
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, fmt.Errorf("reading config file: %w", err)
-		}
+	cfg, err := env.ParseAs[Config]()
+	if err != nil {
+		return nil, fmt.Errorf("error parsing config from environment: %w", err)
 	}
-
-	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("unmarshaling config: %w", err)
-	}
-
-	if cfg.Storage.S3.PresignExpiry == 0 {
-		cfg.Storage.S3.PresignExpiry = 15 * time.Minute
-	}
-
 	return &cfg, nil
 }

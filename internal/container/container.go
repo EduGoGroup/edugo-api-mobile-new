@@ -2,11 +2,13 @@ package container
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/messaging/rabbit"
@@ -19,8 +21,6 @@ import (
 	mongorepo "github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/persistence/mongodb/repository"
 	pgrepo "github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/persistence/postgres/repository"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/storage"
-
-	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 // Handlers groups all HTTP handlers.
@@ -41,7 +41,7 @@ type Container struct {
 	Handlers   *Handlers
 
 	// Infrastructure handles stored for cleanup
-	db          *sql.DB
+	db          *gorm.DB
 	mongoClient *mongo.Client
 	rabbitConn  *rabbit.Connection
 }
@@ -50,14 +50,18 @@ type Container struct {
 func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container, error) {
 	c := &Container{Logger: log}
 
-	// --- PostgreSQL ---
-	db, err := sql.Open("postgres", cfg.Database.Postgres.DSN())
+	// --- PostgreSQL (GORM) ---
+	db, err := gorm.Open(postgres.Open(cfg.Database.Postgres.GormDSN()), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("opening postgres: %w", err)
 	}
-	db.SetMaxOpenConns(cfg.Database.Postgres.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.Database.Postgres.MaxIdleConns)
-	if err := db.PingContext(ctx); err != nil {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("getting underlying sql.DB: %w", err)
+	}
+	sqlDB.SetMaxOpenConns(cfg.Database.Postgres.MaxOpenConns)
+	sqlDB.SetMaxIdleConns(cfg.Database.Postgres.MaxIdleConns)
+	if err := sqlDB.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("pinging postgres: %w", err)
 	}
 	c.db = db
@@ -170,8 +174,11 @@ func (c *Container) Close() {
 		}
 	}
 	if c.db != nil {
-		if err := c.db.Close(); err != nil {
-			c.Logger.Error("closing PostgreSQL", "error", err)
+		sqlDB, err := c.db.DB()
+		if err == nil {
+			if err := sqlDB.Close(); err != nil {
+				c.Logger.Error("closing PostgreSQL", "error", err)
+			}
 		}
 	}
 }

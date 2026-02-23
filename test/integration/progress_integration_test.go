@@ -43,10 +43,10 @@ func TestProgressUpsert(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		db.Exec("DELETE FROM progress WHERE material_id = $1", materialID)
+		db.Exec("DELETE FROM progress WHERE material_id = ?", materialID)
 		cleanupMaterial(t, db, materialID)
-		db.Exec("DELETE FROM users WHERE id IN ($1, $2)", teacherID, userID)
-		db.Exec("DELETE FROM schools WHERE id = $1", schoolID)
+		db.Exec("DELETE FROM users WHERE id IN (?, ?)", teacherID, userID)
+		db.Exec("DELETE FROM schools WHERE id = ?", schoolID)
 	})
 
 	t.Run("Insert new progress", func(t *testing.T) {

@@ -20,7 +20,18 @@ func NewSummaryHandler(svc *service.SummaryService) *SummaryHandler {
 }
 
 // GetSummary godoc
-// GET /v1/materials/:id/summary
+// @Summary Get AI-generated summary for a material
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/summary [get]
 func (h *SummaryHandler) GetSummary(c *gin.Context) {
 	materialID, err := parseUUIDParam(c, "id")
 	if err != nil {

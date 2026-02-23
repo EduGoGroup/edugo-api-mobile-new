@@ -1,3 +1,13 @@
+// @title EduGo API Mobile
+// @version 1.0
+// @description Mobile API for EduGo - materials, assessments, progress, screens and statistics
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the JWT token. Example: "Bearer eyJhbGci..."
+
 package main
 
 import (
@@ -14,6 +24,7 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/logger"
 
+	"github.com/EduGoGroup/edugo-api-mobile-new/docs"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/config"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/container"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/http/router"
@@ -32,8 +43,15 @@ func main() {
 	appLogger := createLogger(cfg)
 	defer func() { _ = appLogger.Sync() }()
 
+	// Configure Swagger host dynamically from config
+	if cfg.Server.SwaggerHost != "" {
+		docs.SwaggerInfo.Host = cfg.Server.SwaggerHost
+	} else {
+		docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%d", cfg.Server.Port)
+	}
+
 	// Configure Gin mode
-	if os.Getenv("APP_ENV") == "prod" {
+	if cfg.Environment == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 

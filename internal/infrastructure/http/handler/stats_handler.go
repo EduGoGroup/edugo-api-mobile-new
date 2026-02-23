@@ -21,7 +21,17 @@ func NewStatsHandler(svc *service.StatsService) *StatsHandler {
 }
 
 // GetGlobalStats godoc
-// GET /v1/stats/global
+// @Summary Get global statistics
+// @Tags stats
+// @Accept json
+// @Produce json
+// @Param school_id query string false "Filter by school ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /stats/global [get]
 func (h *StatsHandler) GetGlobalStats(c *gin.Context) {
 	var schoolID *uuid.UUID
 	if raw := c.Query("school_id"); raw != "" {
@@ -42,7 +52,18 @@ func (h *StatsHandler) GetGlobalStats(c *gin.Context) {
 }
 
 // GetMaterialStats godoc
-// GET /v1/materials/:id/stats
+// @Summary Get statistics for a specific material
+// @Tags stats
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/stats [get]
 func (h *StatsHandler) GetMaterialStats(c *gin.Context) {
 	materialID, err := parseUUIDParam(c, "id")
 	if err != nil {

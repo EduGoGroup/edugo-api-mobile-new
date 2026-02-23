@@ -44,6 +44,8 @@ help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
 
 build: ## Compilar binario
+	@echo "$(YELLOW)Generando Swagger docs...$(RESET)"
+	@swag init -g cmd/main.go -o docs --parseDependency --parseInternal 2>/dev/null || true
 	@echo "$(YELLOW)Compilando $(APP_NAME)...$(RESET)"
 	@mkdir -p $(BUILD_DIR)
 	@$(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(APP_NAME) $(MAIN_PATH)
@@ -56,6 +58,8 @@ build-debug: ## Compilar binario para debugging (sin optimizaciones)
 	@echo "$(GREEN)Binario para debug: $(BUILD_DIR)/$(APP_NAME)$(RESET)"
 
 run: ## Ejecutar en modo desarrollo
+	@echo "$(YELLOW)Generando Swagger docs...$(RESET)"
+	@swag init -g cmd/main.go -o docs --parseDependency --parseInternal 2>/dev/null || true
 	@echo "$(YELLOW)Ejecutando $(APP_NAME)...$(RESET)"
 	@$(GOCMD) run $(MAIN_PATH)
 

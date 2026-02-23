@@ -21,7 +21,17 @@ func NewProgressHandler(svc *service.ProgressService) *ProgressHandler {
 }
 
 // Upsert godoc
-// PUT /v1/progress
+// @Summary Update or insert progress for a material
+// @Tags progress
+// @Accept json
+// @Produce json
+// @Param request body dto.UpsertProgressRequest true "Progress data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /progress [put]
 func (h *ProgressHandler) Upsert(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
