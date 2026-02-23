@@ -11,14 +11,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	_ "github.com/lib/pq"
 )
 
 var (
-	testDB    *sql.DB
-	setupOnce sync.Once
-	setupErr  error
+	testGormDB *gorm.DB
+	testSQLDB  *sql.DB
+	setupOnce  sync.Once
+	setupErr   error
 )
 
 func TestMain(m *testing.M) {
@@ -30,14 +33,14 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Cleanup
-	if testDB != nil {
-		testDB.Close()
+	if testSQLDB != nil {
+		_ = testSQLDB.Close()
 	}
 
 	os.Exit(code)
 }
 
-func getTestDB(t *testing.T) *sql.DB {
+func getTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	setupOnce.Do(func() {
@@ -50,24 +53,31 @@ func getTestDB(t *testing.T) *sql.DB {
 			return
 		}
 
-		db, err := sql.Open("postgres", dsn)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			setupErr = fmt.Errorf("opening postgres: %w", err)
 			return
 		}
 
-		if err := db.PingContext(ctx); err != nil {
+		sqlDB, err := db.DB()
+		if err != nil {
+			setupErr = fmt.Errorf("getting sql.DB: %w", err)
+			return
+		}
+
+		if err := sqlDB.PingContext(ctx); err != nil {
 			setupErr = fmt.Errorf("pinging postgres: %w", err)
 			return
 		}
 
-		db.SetMaxOpenConns(5)
-		db.SetMaxIdleConns(2)
+		sqlDB.SetMaxOpenConns(5)
+		sqlDB.SetMaxIdleConns(2)
 
-		testDB = db
+		testGormDB = db
+		testSQLDB = sqlDB
 
 		// Run migrations / ensure schema exists
-		if err := runMigrations(ctx, db); err != nil {
+		if err := runMigrations(ctx, sqlDB); err != nil {
 			setupErr = fmt.Errorf("running migrations: %w", err)
 			return
 		}
@@ -77,7 +87,7 @@ func getTestDB(t *testing.T) *sql.DB {
 		t.Fatalf("test setup failed: %v", setupErr)
 	}
 
-	return testDB
+	return testGormDB
 }
 
 // runMigrations ensures the tables required by integration tests exist.
@@ -182,32 +192,30 @@ func runMigrations(_ context.Context, db *sql.DB) error {
 }
 
 // setupTestSchool inserts a test school record.
-func setupTestSchool(t *testing.T, db *sql.DB, schoolID uuid.UUID) {
+func setupTestSchool(t *testing.T, db *gorm.DB, schoolID uuid.UUID) {
 	t.Helper()
-	_, err := db.Exec(`INSERT INTO schools (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`, schoolID, "Test School")
-	if err != nil {
+	if err := db.Exec(`INSERT INTO schools (id, name) VALUES (?, ?) ON CONFLICT (id) DO NOTHING`, schoolID, "Test School").Error; err != nil {
 		t.Fatalf("setup test school: %v", err)
 	}
 }
 
 // setupTestUser inserts a test user record.
-func setupTestUser(t *testing.T, db *sql.DB, userID, schoolID uuid.UUID) {
+func setupTestUser(t *testing.T, db *gorm.DB, userID, schoolID uuid.UUID) {
 	t.Helper()
-	_, err := db.Exec(
-		`INSERT INTO users (id, email, school_id) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`,
+	if err := db.Exec(
+		`INSERT INTO users (id, email, school_id) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING`,
 		userID, fmt.Sprintf("user-%s@test.com", userID.String()[:8]), schoolID,
-	)
-	if err != nil {
+	).Error; err != nil {
 		t.Fatalf("setup test user: %v", err)
 	}
 }
 
 // cleanupMaterial deletes test data in reverse FK order.
-func cleanupMaterial(t *testing.T, db *sql.DB, materialID uuid.UUID) {
+func cleanupMaterial(t *testing.T, db *gorm.DB, materialID uuid.UUID) {
 	t.Helper()
-	db.Exec("DELETE FROM assessment_attempt_answer WHERE attempt_id IN (SELECT id FROM assessment_attempt WHERE assessment_id IN (SELECT id FROM assessment WHERE material_id = $1))", materialID)
-	db.Exec("DELETE FROM assessment_attempt WHERE assessment_id IN (SELECT id FROM assessment WHERE material_id = $1)", materialID)
-	db.Exec("DELETE FROM assessment WHERE material_id = $1", materialID)
-	db.Exec("DELETE FROM progress WHERE material_id = $1", materialID)
-	db.Exec("DELETE FROM materials WHERE id = $1", materialID)
+	db.Exec("DELETE FROM assessment_attempt_answer WHERE attempt_id IN (SELECT id FROM assessment_attempt WHERE assessment_id IN (SELECT id FROM assessment WHERE material_id = ?))", materialID)
+	db.Exec("DELETE FROM assessment_attempt WHERE assessment_id IN (SELECT id FROM assessment WHERE material_id = ?)", materialID)
+	db.Exec("DELETE FROM assessment WHERE material_id = ?", materialID)
+	db.Exec("DELETE FROM progress WHERE material_id = ?", materialID)
+	db.Exec("DELETE FROM materials WHERE id = ?", materialID)
 }

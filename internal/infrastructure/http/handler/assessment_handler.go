@@ -21,7 +21,18 @@ func NewAssessmentHandler(svc *service.AssessmentService) *AssessmentHandler {
 }
 
 // GetAssessment godoc
-// GET /v1/materials/:id/assessment
+// @Summary Get assessment for a material
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/assessment [get]
 func (h *AssessmentHandler) GetAssessment(c *gin.Context) {
 	materialID, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -38,7 +49,18 @@ func (h *AssessmentHandler) GetAssessment(c *gin.Context) {
 }
 
 // CreateAttempt godoc
-// POST /v1/materials/:id/assessment/attempts
+// @Summary Submit an assessment attempt
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Param request body dto.CreateAttemptRequest true "Attempt data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/assessment/attempts [post]
 func (h *AssessmentHandler) CreateAttempt(c *gin.Context) {
 	materialID, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -67,7 +89,18 @@ func (h *AssessmentHandler) CreateAttempt(c *gin.Context) {
 }
 
 // GetAttemptResult godoc
-// GET /v1/attempts/:id/results
+// @Summary Get result of an assessment attempt
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Attempt ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /attempts/{id}/results [get]
 func (h *AssessmentHandler) GetAttemptResult(c *gin.Context) {
 	attemptID, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -84,7 +117,17 @@ func (h *AssessmentHandler) GetAttemptResult(c *gin.Context) {
 }
 
 // ListUserAttempts godoc
-// GET /v1/users/me/attempts
+// @Summary List all attempts for the current user
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit results"
+// @Param offset query int false "Offset for pagination"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /users/me/attempts [get]
 func (h *AssessmentHandler) ListUserAttempts(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {

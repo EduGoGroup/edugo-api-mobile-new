@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/EduGoGroup/edugo-shared/auth"
+
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/client"
 )
 
@@ -64,6 +66,13 @@ func RemoteAuthMiddleware(authClient *client.AuthClient) gin.HandlerFunc {
 			c.Set(ContextKeyRole, info.ActiveContext.RoleName)
 			c.Set(ContextKeyActiveContext, info.ActiveContext)
 		}
+
+		// Set jwt_claims so sharedmw.RequirePermission can read permissions
+		c.Set(ContextKeyClaims, &auth.Claims{
+			UserID:        info.UserID,
+			Email:         info.Email,
+			ActiveContext: info.ActiveContext,
+		})
 
 		c.Next()
 	}

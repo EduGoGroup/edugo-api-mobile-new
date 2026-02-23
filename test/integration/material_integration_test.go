@@ -30,8 +30,8 @@ func TestMaterialCRUD(t *testing.T) {
 
 	t.Cleanup(func() {
 		cleanupMaterial(t, db, materialID)
-		db.Exec("DELETE FROM users WHERE id = $1", teacherID)
-		db.Exec("DELETE FROM schools WHERE id = $1", schoolID)
+		db.Exec("DELETE FROM users WHERE id = ?", teacherID)
+		db.Exec("DELETE FROM schools WHERE id = ?", schoolID)
 	})
 
 	t.Run("Create material", func(t *testing.T) {
