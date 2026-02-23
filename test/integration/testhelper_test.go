@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 
 	// Cleanup
 	if testSQLDB != nil {
-		testSQLDB.Close()
+		_ = testSQLDB.Close()
 	}
 
 	os.Exit(code)
@@ -88,13 +88,6 @@ func getTestDB(t *testing.T) *gorm.DB {
 	}
 
 	return testGormDB
-}
-
-// getRawDB returns the underlying *sql.DB for direct SQL operations in tests.
-func getRawDB(t *testing.T) *sql.DB {
-	t.Helper()
-	_ = getTestDB(t) // ensure setup
-	return testSQLDB
 }
 
 // runMigrations ensures the tables required by integration tests exist.

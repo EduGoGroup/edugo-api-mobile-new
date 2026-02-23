@@ -90,7 +90,7 @@ definitions:
     required:
     - material_id
     type: object
-host: localhost:8080
+host: localhost:8065
 info:
   contact: {}
   description: Mobile API for EduGo - materials, assessments, progress, screens and

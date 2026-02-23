@@ -16,6 +16,7 @@ type Config struct {
 	Storage     StorageConfig   `envPrefix:"STORAGE_"`
 	Logging     LoggingConfig   `envPrefix:"LOGGING_"`
 	Auth        AuthConfig      `envPrefix:"AUTH_"`
+	Cache       CacheConfig     `envPrefix:"CACHE_"`
 }
 
 // ServerConfig holds HTTP server configuration.
@@ -99,8 +100,20 @@ type LoggingConfig struct {
 
 // AuthConfig holds authentication configuration.
 type AuthConfig struct {
-	JWT      JWTConfig      `envPrefix:"JWT_"`
-	APIAdmin APIAdminConfig `envPrefix:"API_ADMIN_"`
+	JWT            JWTConfig            `envPrefix:"JWT_"`
+	APIAdmin       APIAdminConfig       `envPrefix:"API_ADMIN_"`
+	APIIamPlatform APIIamPlatformConfig `envPrefix:"API_IAM_PLATFORM_"`
+}
+
+// APIIamPlatformConfig holds IAM platform connection parameters.
+type APIIamPlatformConfig struct {
+	BaseURL string        `env:"BASE_URL"`
+	Timeout time.Duration `env:"TIMEOUT" envDefault:"5s"`
+}
+
+// CacheConfig holds cache connection configuration.
+type CacheConfig struct {
+	RedisURL string `env:"REDIS_URL"`
 }
 
 // JWTConfig holds JWT validation parameters.

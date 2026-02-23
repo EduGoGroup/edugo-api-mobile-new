@@ -24,7 +24,7 @@ import (
 )
 
 func setupScreenHandler(repo *mock.MockScreenRepository) (*ScreenHandler, *gin.Engine) {
-	svc := service.NewScreenService(repo, mock.MockLogger{})
+	svc := service.NewScreenService(repo, nil, nil, mock.MockLogger{})
 	h := NewScreenHandler(svc)
 	r := gin.New()
 	return h, r

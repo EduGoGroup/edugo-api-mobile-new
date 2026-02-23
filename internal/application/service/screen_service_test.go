@@ -69,7 +69,7 @@ func TestScreenService_GetScreen(t *testing.T) {
 				tt.setupRepo(repo)
 			}
 
-			svc := NewScreenService(repo, mock.MockLogger{})
+			svc := NewScreenService(repo, nil, nil, mock.MockLogger{})
 			resp, err := svc.GetScreen(ctx, tt.screenKey)
 
 			if tt.wantErr {
@@ -139,7 +139,7 @@ func TestScreenService_GetScreensByResourceKey(t *testing.T) {
 				tt.setupRepo(repo)
 			}
 
-			svc := NewScreenService(repo, mock.MockLogger{})
+			svc := NewScreenService(repo, nil, nil, mock.MockLogger{})
 			resp, err := svc.GetScreensByResourceKey(ctx, tt.resourceKey)
 
 			if tt.wantErr {
@@ -213,7 +213,7 @@ func TestScreenService_GetNavigation(t *testing.T) {
 				tt.setupRepo(repo)
 			}
 
-			svc := NewScreenService(repo, mock.MockLogger{})
+			svc := NewScreenService(repo, nil, nil, mock.MockLogger{})
 			resp, err := svc.GetNavigation(ctx, tt.scope)
 
 			if tt.wantErr {
@@ -271,7 +271,7 @@ func TestScreenService_SavePreferences(t *testing.T) {
 				tt.setupRepo(repo)
 			}
 
-			svc := NewScreenService(repo, mock.MockLogger{})
+			svc := NewScreenService(repo, nil, nil, mock.MockLogger{})
 			err := svc.SavePreferences(ctx, tt.screenKey, userID.String(), tt.prefs)
 
 			if tt.wantErr {

@@ -1,7 +1,7 @@
 // @title EduGo API Mobile
 // @version 1.0
 // @description Mobile API for EduGo - materials, assessments, progress, screens and statistics
-// @host localhost:8080
+// @host localhost:8065
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header

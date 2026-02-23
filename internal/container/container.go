@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	rediscache "github.com/EduGoGroup/edugo-shared/cache/redis"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/messaging/rabbit"
 
@@ -44,6 +46,7 @@ type Container struct {
 	db          *gorm.DB
 	mongoClient *mongo.Client
 	rabbitConn  *rabbit.Connection
+	redisClient *goredis.Client
 }
 
 // New creates and wires the entire dependency graph.
@@ -110,6 +113,29 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 		}
 	}
 
+	// --- Redis Cache ---
+	var cacheSvc rediscache.CacheService
+	if cfg.Cache.RedisURL != "" {
+		redisClient, redisErr := rediscache.ConnectRedis(rediscache.RedisConfig{URL: cfg.Cache.RedisURL})
+		if redisErr != nil {
+			log.Warn("Redis connection failed, continuing without cache", "error", redisErr)
+		} else {
+			cacheSvc = rediscache.NewCacheService(redisClient)
+			c.redisClient = redisClient
+			log.Info("Redis connected")
+		}
+	}
+
+	// --- IAM Platform Client ---
+	var iamClient *client.IAMPlatformClient
+	if cfg.Auth.APIIamPlatform.BaseURL != "" {
+		iamClient = client.NewIAMPlatformClient(client.IAMPlatformConfig{
+			BaseURL: cfg.Auth.APIIamPlatform.BaseURL,
+			Timeout: cfg.Auth.APIIamPlatform.Timeout,
+		})
+		log.Info("IAM Platform client initialized", "baseURL", cfg.Auth.APIIamPlatform.BaseURL)
+	}
+
 	// --- Auth Client ---
 	authClient := client.NewAuthClient(client.AuthClientConfig{
 		JWTSecret:       cfg.Auth.JWT.Secret,
@@ -143,7 +169,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	materialSvc := service.NewMaterialService(materialRepo, s3Client, publisher, log, cfg.Messaging.RabbitMQ.Exchange)
 	assessmentSvc := service.NewAssessmentService(assessmentRepo, attemptRepo, mongoAssessmentRepo, log)
 	progressSvc := service.NewProgressService(progressRepo, log)
-	screenSvc := service.NewScreenService(screenRepo, log)
+	screenSvc := service.NewScreenService(screenRepo, iamClient, cacheSvc, log)
 	statsSvc := service.NewStatsService(statsRepo, log)
 	summarySvc := service.NewSummaryService(mongoSummaryRepo, log)
 
@@ -163,6 +189,11 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 
 // Close releases all infrastructure resources in reverse order.
 func (c *Container) Close() {
+	if c.redisClient != nil {
+		if err := c.redisClient.Close(); err != nil {
+			c.Logger.Error("closing Redis", "error", err)
+		}
+	}
 	if c.rabbitConn != nil {
 		if err := c.rabbitConn.Close(); err != nil {
 			c.Logger.Error("closing RabbitMQ", "error", err)

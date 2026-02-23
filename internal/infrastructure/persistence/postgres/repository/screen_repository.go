@@ -54,7 +54,7 @@ func (r *ScreenRepository) GetScreensByResourceKey(ctx context.Context, resource
 	if err != nil {
 		return nil, sharedErrors.NewDatabaseError("get screens by resource", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []repository.ScreenComposed
 	for rows.Next() {
