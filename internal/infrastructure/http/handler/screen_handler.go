@@ -21,7 +21,18 @@ func NewScreenHandler(svc *service.ScreenService) *ScreenHandler {
 }
 
 // GetScreen godoc
-// GET /v1/screens/:screenKey
+// @Summary Get a screen by key
+// @Tags screens
+// @Accept json
+// @Produce json
+// @Param screenKey path string true "Screen key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /screens/{screenKey} [get]
 func (h *ScreenHandler) GetScreen(c *gin.Context) {
 	screenKey := c.Param("screenKey")
 	if screenKey == "" {
@@ -39,7 +50,17 @@ func (h *ScreenHandler) GetScreen(c *gin.Context) {
 }
 
 // GetScreensByResource godoc
-// GET /v1/screens/resource/:resourceKey
+// @Summary Get screens by resource key
+// @Tags screens
+// @Accept json
+// @Produce json
+// @Param resourceKey path string true "Resource key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /screens/resource/{resourceKey} [get]
 func (h *ScreenHandler) GetScreensByResource(c *gin.Context) {
 	resourceKey := c.Param("resourceKey")
 	if resourceKey == "" {
@@ -57,7 +78,16 @@ func (h *ScreenHandler) GetScreensByResource(c *gin.Context) {
 }
 
 // GetNavigation godoc
-// GET /v1/screens/navigation
+// @Summary Get navigation screens
+// @Tags screens
+// @Accept json
+// @Produce json
+// @Param scope query string false "Navigation scope (default: system)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /screens/navigation [get]
 func (h *ScreenHandler) GetNavigation(c *gin.Context) {
 	scope := c.DefaultQuery("scope", "system")
 
@@ -71,7 +101,18 @@ func (h *ScreenHandler) GetNavigation(c *gin.Context) {
 }
 
 // SavePreferences godoc
-// PUT /v1/screens/:screenKey/preferences
+// @Summary Save user preferences for a screen
+// @Tags screens
+// @Accept json
+// @Produce json
+// @Param screenKey path string true "Screen key"
+// @Param request body dto.SavePreferencesRequest true "Preferences data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /screens/{screenKey}/preferences [put]
 func (h *ScreenHandler) SavePreferences(c *gin.Context) {
 	screenKey := c.Param("screenKey")
 	if screenKey == "" {

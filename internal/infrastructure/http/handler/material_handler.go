@@ -21,7 +21,20 @@ func NewMaterialHandler(svc *service.MaterialService) *MaterialHandler {
 }
 
 // List godoc
-// GET /v1/materials
+// @Summary List materials
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param subject_id query string false "Filter by subject ID"
+// @Param unit_id query string false "Filter by unit ID"
+// @Param page query int false "Page number"
+// @Param limit query int false "Items per page"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials [get]
 func (h *MaterialHandler) List(c *gin.Context) {
 	var req dto.ListMaterialsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -38,7 +51,18 @@ func (h *MaterialHandler) List(c *gin.Context) {
 }
 
 // GetByID godoc
-// GET /v1/materials/:id
+// @Summary Get material by ID
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id} [get]
 func (h *MaterialHandler) GetByID(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -55,7 +79,18 @@ func (h *MaterialHandler) GetByID(c *gin.Context) {
 }
 
 // GetWithVersions godoc
-// GET /v1/materials/:id/versions
+// @Summary Get material with all its versions
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/versions [get]
 func (h *MaterialHandler) GetWithVersions(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -72,7 +107,17 @@ func (h *MaterialHandler) GetWithVersions(c *gin.Context) {
 }
 
 // Create godoc
-// POST /v1/materials
+// @Summary Create a new material
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateMaterialRequest true "Material data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials [post]
 func (h *MaterialHandler) Create(c *gin.Context) {
 	var req dto.CreateMaterialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,7 +146,19 @@ func (h *MaterialHandler) Create(c *gin.Context) {
 }
 
 // Update godoc
-// PUT /v1/materials/:id
+// @Summary Update a material
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Param request body dto.UpdateMaterialRequest true "Material update data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id} [put]
 func (h *MaterialHandler) Update(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -124,7 +181,17 @@ func (h *MaterialHandler) Update(c *gin.Context) {
 }
 
 // GenerateUploadURL godoc
-// POST /v1/materials/:id/upload-url
+// @Summary Generate presigned URL for file upload
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/upload-url [post]
 func (h *MaterialHandler) GenerateUploadURL(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -141,7 +208,18 @@ func (h *MaterialHandler) GenerateUploadURL(c *gin.Context) {
 }
 
 // UploadComplete godoc
-// POST /v1/materials/:id/upload-complete
+// @Summary Notify that file upload is complete
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Param request body dto.UploadCompleteRequest true "Upload completion data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/upload-complete [post]
 func (h *MaterialHandler) UploadComplete(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
@@ -164,7 +242,17 @@ func (h *MaterialHandler) UploadComplete(c *gin.Context) {
 }
 
 // GenerateDownloadURL godoc
-// GET /v1/materials/:id/download-url
+// @Summary Generate presigned URL for file download
+// @Tags materials
+// @Accept json
+// @Produce json
+// @Param id path string true "Material ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /materials/{id}/download-url [get]
 func (h *MaterialHandler) GenerateDownloadURL(c *gin.Context) {
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {

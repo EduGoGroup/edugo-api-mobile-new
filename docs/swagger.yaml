@@ -1,0 +1,948 @@
+basePath: /api/v1
+definitions:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission:
+    properties:
+      answer:
+        type: string
+      question_index:
+        type: integer
+      time_spent_seconds:
+        type: integer
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission'
+        minItems: 1
+        type: array
+      idempotency_key:
+        type: string
+    required:
+    - answers
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest:
+    properties:
+      academic_unit_id:
+        type: string
+      description:
+        type: string
+      grade:
+        type: string
+      is_public:
+        type: boolean
+      subject:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest:
+    properties:
+      preferences:
+        items:
+          type: integer
+        type: array
+    required:
+    - preferences
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest:
+    properties:
+      description:
+        type: string
+      grade:
+        type: string
+      is_public:
+        type: boolean
+      status:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest:
+    properties:
+      file_size_bytes:
+        minimum: 1
+        type: integer
+      file_type:
+        type: string
+      file_url:
+        type: string
+    required:
+    - file_size_bytes
+    - file_type
+    - file_url
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest:
+    properties:
+      last_page:
+        minimum: 0
+        type: integer
+      material_id:
+        type: string
+      percentage:
+        maximum: 100
+        minimum: 0
+        type: integer
+    required:
+    - material_id
+    type: object
+host: localhost:8065
+info:
+  contact: {}
+  description: Mobile API for EduGo - materials, assessments, progress, screens and
+    statistics
+  title: EduGo API Mobile
+  version: "1.0"
+paths:
+  /attempts/{id}/results:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Attempt ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get result of an assessment attempt
+      tags:
+      - assessments
+  /health:
+    get:
+      description: Returns the health status of the API and its dependencies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /materials:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by subject ID
+        in: query
+        name: subject_id
+        type: string
+      - description: Filter by unit ID
+        in: query
+        name: unit_id
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List materials
+      tags:
+      - materials
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new material
+      tags:
+      - materials
+  /materials/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get material by ID
+      tags:
+      - materials
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Material update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a material
+      tags:
+      - materials
+  /materials/{id}/assessment:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get assessment for a material
+      tags:
+      - assessments
+  /materials/{id}/assessment/attempts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Attempt data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit an assessment attempt
+      tags:
+      - assessments
+  /materials/{id}/download-url:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate presigned URL for file download
+      tags:
+      - materials
+  /materials/{id}/stats:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get statistics for a specific material
+      tags:
+      - stats
+  /materials/{id}/summary:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get AI-generated summary for a material
+      tags:
+      - materials
+  /materials/{id}/upload-complete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload completion data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Notify that file upload is complete
+      tags:
+      - materials
+  /materials/{id}/upload-url:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate presigned URL for file upload
+      tags:
+      - materials
+  /materials/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Material ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get material with all its versions
+      tags:
+      - materials
+  /progress:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Progress data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update or insert progress for a material
+      tags:
+      - progress
+  /screens/{screenKey}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Screen key
+        in: path
+        name: screenKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a screen by key
+      tags:
+      - screens
+  /screens/{screenKey}/preferences:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Screen key
+        in: path
+        name: screenKey
+        required: true
+        type: string
+      - description: Preferences data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Save user preferences for a screen
+      tags:
+      - screens
+  /screens/navigation:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'Navigation scope (default: system)'
+        in: query
+        name: scope
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get navigation screens
+      tags:
+      - screens
+  /screens/resource/{resourceKey}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Resource key
+        in: path
+        name: resourceKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get screens by resource key
+      tags:
+      - screens
+  /stats/global:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by school ID (UUID)
+        in: query
+        name: school_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get global statistics
+      tags:
+      - stats
+  /users/me/attempts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Limit results
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all attempts for the current user
+      tags:
+      - assessments
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer" followed by a space and the JWT token. Example: "Bearer
+      eyJhbGci..."'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

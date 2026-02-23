@@ -3,6 +3,8 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
 	sharedmw "github.com/EduGoGroup/edugo-shared/middleware/gin"
@@ -27,8 +29,12 @@ func Setup(c *container.Container) *gin.Engine {
 	r.GET("/health", c.Handlers.Health.Health)
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	// Authenticated API v1
+	// Swagger UI
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// API v1
 	v1 := r.Group("/api/v1")
+	v1.GET("/health", c.Handlers.Health.Health) // also under basePath for Swagger
 	v1.Use(middleware.RemoteAuthMiddleware(c.AuthClient))
 
 	// Materials

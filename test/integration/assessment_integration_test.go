@@ -34,8 +34,8 @@ func TestAssessmentAndAttemptCRUD(t *testing.T) {
 
 	t.Cleanup(func() {
 		cleanupMaterial(t, db, materialID)
-		db.Exec("DELETE FROM users WHERE id IN ($1, $2)", teacherID, studentID)
-		db.Exec("DELETE FROM schools WHERE id = $1", schoolID)
+		db.Exec("DELETE FROM users WHERE id IN (?, ?)", teacherID, studentID)
+		db.Exec("DELETE FROM schools WHERE id = ?", schoolID)
 	})
 
 	// Create material first
@@ -54,9 +54,9 @@ func TestAssessmentAndAttemptCRUD(t *testing.T) {
 
 	// Create assessment
 	t.Run("Create assessment", func(t *testing.T) {
-		_, err := db.Exec(`INSERT INTO assessment (id, material_id, questions_count, status, created_at, updated_at)
-			VALUES ($1, $2, $3, $4, NOW(), NOW())`,
-			assessmentID, materialID, 2, "published")
+		err := db.Exec(`INSERT INTO assessment (id, material_id, questions_count, status, created_at, updated_at)
+			VALUES (?, ?, ?, ?, NOW(), NOW())`,
+			assessmentID, materialID, 2, "published").Error
 		require.NoError(t, err)
 	})
 
