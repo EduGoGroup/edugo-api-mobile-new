@@ -198,7 +198,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateMaterialRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest"
                         }
                     }
                 ],
@@ -328,7 +328,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateMaterialRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest"
                         }
                     }
                 ],
@@ -467,7 +467,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateAttemptRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest"
                         }
                     }
                 ],
@@ -722,7 +722,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UploadCompleteRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest"
                         }
                     }
                 ],
@@ -905,7 +905,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpsertProgressRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest"
                         }
                     }
                 ],
@@ -1145,7 +1145,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SavePreferencesRequest"
+                            "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest"
                         }
                     }
                 ],
@@ -1296,7 +1296,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AnswerSubmission": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission": {
             "type": "object",
             "properties": {
                 "answer": {
@@ -1310,7 +1310,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateAttemptRequest": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest": {
             "type": "object",
             "required": [
                 "answers"
@@ -1320,7 +1320,7 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/dto.AnswerSubmission"
+                        "$ref": "#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission"
                     }
                 },
                 "idempotency_key": {
@@ -1328,7 +1328,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateMaterialRequest": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest": {
             "type": "object",
             "required": [
                 "title"
@@ -1354,10 +1354,21 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SavePreferencesRequest": {
-            "type": "object"
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest": {
+            "type": "object",
+            "required": [
+                "preferences"
+            ],
+            "properties": {
+                "preferences": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
         },
-        "dto.UpdateMaterialRequest": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1380,7 +1391,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UploadCompleteRequest": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest": {
             "type": "object",
             "required": [
                 "file_size_bytes",
@@ -1400,7 +1411,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpsertProgressRequest": {
+        "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest": {
             "type": "object",
             "required": [
                 "material_id"

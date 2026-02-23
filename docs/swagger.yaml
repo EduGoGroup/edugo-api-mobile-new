@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  dto.AnswerSubmission:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission:
     properties:
       answer:
         type: string
@@ -9,11 +9,11 @@ definitions:
       time_spent_seconds:
         type: integer
     type: object
-  dto.CreateAttemptRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest:
     properties:
       answers:
         items:
-          $ref: '#/definitions/dto.AnswerSubmission'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission'
         minItems: 1
         type: array
       idempotency_key:
@@ -21,7 +21,7 @@ definitions:
     required:
     - answers
     type: object
-  dto.CreateMaterialRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest:
     properties:
       academic_unit_id:
         type: string
@@ -38,9 +38,16 @@ definitions:
     required:
     - title
     type: object
-  dto.SavePreferencesRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest:
+    properties:
+      preferences:
+        items:
+          type: integer
+        type: array
+    required:
+    - preferences
     type: object
-  dto.UpdateMaterialRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest:
     properties:
       description:
         type: string
@@ -55,7 +62,7 @@ definitions:
       title:
         type: string
     type: object
-  dto.UploadCompleteRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest:
     properties:
       file_size_bytes:
         minimum: 1
@@ -69,7 +76,7 @@ definitions:
     - file_type
     - file_url
     type: object
-  dto.UpsertProgressRequest:
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest:
     properties:
       last_page:
         minimum: 0
@@ -206,7 +213,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateMaterialRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateMaterialRequest'
       produces:
       - application/json
       responses:
@@ -292,7 +299,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateMaterialRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest'
       produces:
       - application/json
       responses:
@@ -384,7 +391,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateAttemptRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest'
       produces:
       - application/json
       responses:
@@ -552,7 +559,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UploadCompleteRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest'
       produces:
       - application/json
       responses:
@@ -672,7 +679,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UpsertProgressRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpsertProgressRequest'
       produces:
       - application/json
       responses:
@@ -759,7 +766,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.SavePreferencesRequest'
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest'
       produces:
       - application/json
       responses:
