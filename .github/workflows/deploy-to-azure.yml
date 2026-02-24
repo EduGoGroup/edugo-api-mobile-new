@@ -100,7 +100,7 @@ jobs:
             --registry-server ${{ env.REGISTRY }} \
             --registry-username ${{ github.actor }} \
             --registry-password "${{ secrets.GHCR_TOKEN }}" \
-            --target-port 9091 \
+            --target-port 8080 \
             --ingress external \
             --min-replicas 0 \
             --max-replicas 2 \
@@ -117,7 +117,7 @@ jobs:
               "APP_ENV=development" \
               "ENV=development" \
               "GIN_MODE=release" \
-              "SERVER_PORT=9091" \
+              "SERVER_PORT=8080" \
               "SERVER_HOST=0.0.0.0" \
               "SERVER_READ_TIMEOUT=30s" \
               "SERVER_WRITE_TIMEOUT=30s" \
