@@ -110,6 +110,9 @@ jobs:
               "db-postgres-password=${{ secrets.DATABASE_POSTGRES_PASSWORD }}" \
               "db-mongodb-uri=${{ secrets.DATABASE_MONGODB_URI }}" \
               "jwt-secret=${{ secrets.AUTH_JWT_SECRET }}" \
+              "iam-platform-url=${{ secrets.AUTH_API_IAM_PLATFORM_BASE_URL }}" \
+              "admin-base-url=${{ secrets.AUTH_API_ADMIN_BASE_URL }}" \
+              "cache-redis-url=${{ secrets.CACHE_REDIS_URL }}" \
             --env-vars \
               "APP_ENV=development" \
               "ENV=development" \
@@ -118,13 +121,13 @@ jobs:
               "SERVER_HOST=0.0.0.0" \
               "SERVER_READ_TIMEOUT=30s" \
               "SERVER_WRITE_TIMEOUT=30s" \
-              "DATABASE_POSTGRES_HOST=ep-green-frost-ado4abbi-pooler.c-2.us-east-1.aws.neon.tech" \
-              "DATABASE_POSTGRES_PORT=5432" \
-              "DATABASE_POSTGRES_USER=neondb_owner" \
+              "DATABASE_POSTGRES_HOST=${{ secrets.DATABASE_POSTGRES_HOST }}" \
+              "DATABASE_POSTGRES_PORT=${{ secrets.DATABASE_POSTGRES_PORT }}" \
+              "DATABASE_POSTGRES_USER=${{ secrets.DATABASE_POSTGRES_USER }}" \
               "DATABASE_POSTGRES_PASSWORD=secretref:db-postgres-password" \
-              "DATABASE_POSTGRES_DATABASE=edugo" \
-              "DATABASE_POSTGRES_SSLMODE=require" \
-              "DATABASE_POSTGRES_MAX_CONNECTIONS=10" \
+              "DATABASE_POSTGRES_DATABASE=${{ secrets.DATABASE_POSTGRES_DATABASE }}" \
+              "DATABASE_POSTGRES_SSL_MODE=${{ secrets.DATABASE_POSTGRES_SSL_MODE }}" \
+              "DATABASE_POSTGRES_MAX_OPEN_CONNS=10" \
               "DATABASE_MONGODB_URI=secretref:db-mongodb-uri" \
               "DATABASE_MONGODB_DATABASE=edugo" \
               "DATABASE_MONGODB_TIMEOUT=10s" \
@@ -142,7 +145,10 @@ jobs:
               "STORAGE_S3_ACCESS_KEY_ID=disabled" \
               "STORAGE_S3_SECRET_ACCESS_KEY=disabled" \
               "LOGGING_LEVEL=info" \
-              "LOGGING_FORMAT=json"
+              "LOGGING_FORMAT=json" \
+              "AUTH_API_IAM_PLATFORM_BASE_URL=secretref:iam-platform-url" \
+              "AUTH_API_ADMIN_BASE_URL=secretref:admin-base-url" \
+              "CACHE_REDIS_URL=secretref:cache-redis-url"
 
           echo "✅ Container App creado"
 
