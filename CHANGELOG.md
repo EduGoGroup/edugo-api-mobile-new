@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.1.1] - 2026-02-24
+
+### Tipo de Release: patch
+
+- fix: correct target port 9091 to 8080 in deploy pipeline
+
+---
+
 ## [0.1.0] - 2026-02-24
 
 ### Tipo de Release: patch
