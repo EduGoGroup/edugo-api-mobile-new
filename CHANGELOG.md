@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.2.0] - 2026-02-25
+
+### Tipo de Release: patch
+
+- Update dependencies and remove unused Actions field from screen DTOs
+- fix: use GITHUB_TOKEN instead of GHCR_TOKEN for registry auth
+
+---
+
 ## [0.1.1] - 2026-02-24
 
 ### Tipo de Release: patch
