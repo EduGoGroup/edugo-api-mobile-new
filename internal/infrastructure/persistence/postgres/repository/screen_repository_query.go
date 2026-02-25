@@ -3,7 +3,7 @@ package repository
 const queryScreenByKey = `
 	SELECT
 		si.id, si.screen_key, si.template_id, si.name, si.description,
-		si.slot_data, si.actions, si.data_endpoint, si.data_config,
+		si.slot_data,
 		si.scope, si.required_permission, si.handler_key, si.is_active,
 		si.created_at, si.updated_at,
 		st.id, st.pattern, st.name, st.description, st.version,
@@ -16,7 +16,7 @@ const queryScreenByKey = `
 const queryScreensByResourceKey = `
 	SELECT
 		si.id, si.screen_key, si.template_id, si.name, si.description,
-		si.slot_data, si.actions, si.data_endpoint, si.data_config,
+		si.slot_data,
 		si.scope, si.required_permission, si.handler_key, si.is_active,
 		si.created_at, si.updated_at,
 		st.id, st.pattern, st.name, st.description, st.version,

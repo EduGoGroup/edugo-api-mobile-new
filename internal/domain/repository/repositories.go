@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
+	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 )
 
 // MaterialRepository defines operations for materials in PostgreSQL.
@@ -73,10 +73,10 @@ type StatsRepository interface {
 
 // MaterialStatsResult holds computed statistics for a single material.
 type MaterialStatsResult struct {
-	TotalAttempts    int     `json:"total_attempts"`
-	AverageScore     float64 `json:"average_score"`
-	CompletionRate   float64 `json:"completion_rate"`
-	UniqueStudents   int     `json:"unique_students"`
+	TotalAttempts  int     `json:"total_attempts"`
+	AverageScore   float64 `json:"average_score"`
+	CompletionRate float64 `json:"completion_rate"`
+	UniqueStudents int     `json:"unique_students"`
 }
 
 // MongoAssessmentRepository defines operations for assessment questions in MongoDB.

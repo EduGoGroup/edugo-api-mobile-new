@@ -12,16 +12,15 @@ type ScreenResponse struct {
 	Pattern     string          `json:"pattern"`
 	Definition  json.RawMessage `json:"definition"`
 	SlotData    json.RawMessage `json:"slot_data"`
-	Actions     json.RawMessage `json:"actions,omitempty"`
 	IsActive    bool            `json:"is_active"`
 }
 
 // NavigationNode represents a single node in the navigation tree.
 type NavigationNode struct {
-	Key         string            `json:"key"`
-	DisplayName string            `json:"display_name"`
-	Icon        *string           `json:"icon,omitempty"`
-	SortOrder   int               `json:"sort_order"`
+	Key         string             `json:"key"`
+	DisplayName string             `json:"display_name"`
+	Icon        *string            `json:"icon,omitempty"`
+	SortOrder   int                `json:"sort_order"`
 	Screens     []NavigationScreen `json:"screens,omitempty"`
 	Children    []NavigationNode   `json:"children,omitempty"`
 }

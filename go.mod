@@ -3,15 +3,15 @@ module github.com/EduGoGroup/edugo-api-mobile-new
 go 1.25.5
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.51.0
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.52.0
-	github.com/EduGoGroup/edugo-shared/auth v0.50.0
-	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.0
-	github.com/EduGoGroup/edugo-shared/common v0.50.0
-	github.com/EduGoGroup/edugo-shared/logger v0.50.0
-	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.0
-	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.1
-	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.0
+	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.53.0
+	github.com/EduGoGroup/edugo-shared/auth v0.50.1
+	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.1
+	github.com/EduGoGroup/edugo-shared/common v0.50.1
+	github.com/EduGoGroup/edugo-shared/logger v0.50.1
+	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1
+	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.2
+	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.1
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
@@ -92,7 +92,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
-	github.com/prometheus/procfs v0.19.2 // indirect
+	github.com/prometheus/procfs v0.20.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
