@@ -56,7 +56,6 @@ func (s *ScreenService) GetScreen(ctx context.Context, screenKey string) (*dto.S
 				Pattern:    combined.Pattern,
 				Definition: combined.Template,
 				SlotData:   combined.SlotData,
-				Actions:    combined.Actions,
 				IsActive:   true,
 			}
 			if s.cache != nil {
@@ -144,7 +143,6 @@ func toScreenResponse(c *repository.ScreenComposed) *dto.ScreenResponse {
 		Pattern:     c.Template.Pattern,
 		Definition:  c.Template.Definition,
 		SlotData:    c.Instance.SlotData,
-		Actions:     c.Instance.Actions,
 		IsActive:    c.Instance.IsActive,
 	}
 }

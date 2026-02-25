@@ -2,8 +2,8 @@ package dto
 
 // GlobalStatsResponse is the API response for global statistics.
 type GlobalStatsResponse struct {
-	TotalMaterials     int     `json:"total_materials"`
-	CompletedProgress  int     `json:"completed_progress"`
+	TotalMaterials      int     `json:"total_materials"`
+	CompletedProgress   int     `json:"completed_progress"`
 	AverageAttemptScore float64 `json:"average_attempt_score"`
 }
 

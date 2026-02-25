@@ -32,7 +32,7 @@ func (r *ScreenRepository) GetScreenByKey(ctx context.Context, screenKey string)
 	row := r.db.WithContext(ctx).Raw(queryScreenByKey, screenKey).Row()
 	err := row.Scan(
 		&inst.ID, &inst.ScreenKey, &inst.TemplateID, &inst.Name, &inst.Description,
-		&inst.SlotData, &inst.Actions, &inst.DataEndpoint, &inst.DataConfig,
+		&inst.SlotData,
 		&inst.Scope, &inst.RequiredPermission, &inst.HandlerKey, &inst.IsActive,
 		&inst.CreatedAt, &inst.UpdatedAt,
 		&tmpl.ID, &tmpl.Pattern, &tmpl.Name, &tmpl.Description, &tmpl.Version,
@@ -62,7 +62,7 @@ func (r *ScreenRepository) GetScreensByResourceKey(ctx context.Context, resource
 		var tmpl pgentities.ScreenTemplate
 		if err := rows.Scan(
 			&inst.ID, &inst.ScreenKey, &inst.TemplateID, &inst.Name, &inst.Description,
-			&inst.SlotData, &inst.Actions, &inst.DataEndpoint, &inst.DataConfig,
+			&inst.SlotData,
 			&inst.Scope, &inst.RequiredPermission, &inst.HandlerKey, &inst.IsActive,
 			&inst.CreatedAt, &inst.UpdatedAt,
 			&tmpl.ID, &tmpl.Pattern, &tmpl.Name, &tmpl.Description, &tmpl.Version,

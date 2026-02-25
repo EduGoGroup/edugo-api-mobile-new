@@ -84,12 +84,12 @@ type StorageConfig struct {
 
 // S3Config holds AWS S3 configuration.
 type S3Config struct {
-	Region         string        `env:"REGION"         envDefault:"us-east-1"`
-	Bucket         string        `env:"BUCKET"`
-	AccessKeyID    string        `env:"ACCESS_KEY_ID"`
-	SecretAccessKey string       `env:"SECRET_ACCESS_KEY"`
-	Endpoint       string        `env:"ENDPOINT"`
-	PresignExpiry  time.Duration `env:"PRESIGN_EXPIRY" envDefault:"15m"`
+	Region          string        `env:"REGION"         envDefault:"us-east-1"`
+	Bucket          string        `env:"BUCKET"`
+	AccessKeyID     string        `env:"ACCESS_KEY_ID"`
+	SecretAccessKey string        `env:"SECRET_ACCESS_KEY"`
+	Endpoint        string        `env:"ENDPOINT"`
+	PresignExpiry   time.Duration `env:"PRESIGN_EXPIRY" envDefault:"15m"`
 }
 
 // LoggingConfig holds logger configuration.
