@@ -34,18 +34,15 @@ func NewIAMPlatformClient(cfg IAMPlatformConfig) *IAMPlatformClient {
 
 // CombinedScreenResponse represents a resolved screen from iam-platform.
 type CombinedScreenResponse struct {
-	ScreenID     string          `json:"screen_id"`
-	ScreenKey    string          `json:"screen_key"`
-	ScreenName   string          `json:"screen_name"`
-	Pattern      string          `json:"pattern"`
-	Version      int             `json:"version"`
-	Template     json.RawMessage `json:"template"`
-	SlotData     json.RawMessage `json:"slot_data"`
-	Actions      json.RawMessage `json:"actions"`
-	DataEndpoint string          `json:"data_endpoint,omitempty"`
-	DataConfig   json.RawMessage `json:"data_config,omitempty"`
-	HandlerKey   *string         `json:"handler_key,omitempty"`
-	UpdatedAt    time.Time       `json:"updated_at"`
+	ScreenID   string          `json:"screen_id"`
+	ScreenKey  string          `json:"screen_key"`
+	ScreenName string          `json:"screen_name"`
+	Pattern    string          `json:"pattern"`
+	Version    int             `json:"version"`
+	Template   json.RawMessage `json:"template"`
+	SlotData   json.RawMessage `json:"slot_data"`
+	HandlerKey *string         `json:"handler_key,omitempty"`
+	UpdatedAt  time.Time       `json:"updated_at"`
 }
 
 // ResourceScreenResponse represents a resource-screen link from iam-platform.

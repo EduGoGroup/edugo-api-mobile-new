@@ -26,12 +26,12 @@ func NewStatsService(repo repository.StatsRepository, log logger.Logger) *StatsS
 // GetGlobalStats retrieves global statistics using parallel queries.
 func (s *StatsService) GetGlobalStats(ctx context.Context, schoolID *uuid.UUID) (*dto.GlobalStatsResponse, error) {
 	var (
-		wg              sync.WaitGroup
-		mu              sync.Mutex
-		totalMaterials  int
-		completedProg   int
-		avgScore        float64
-		firstErr        error
+		wg             sync.WaitGroup
+		mu             sync.Mutex
+		totalMaterials int
+		completedProg  int
+		avgScore       float64
+		firstErr       error
 	)
 
 	wg.Add(3)

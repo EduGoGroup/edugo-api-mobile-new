@@ -9,8 +9,8 @@ import (
 
 	sharedErrors "github.com/EduGoGroup/edugo-shared/common/errors"
 
-	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 	domrepo "github.com/EduGoGroup/edugo-api-mobile-new/internal/domain/repository"
+	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 )
 
 // StatsRepository implements repository.StatsRepository using PostgreSQL.

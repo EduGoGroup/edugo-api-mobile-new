@@ -91,11 +91,11 @@ func (m *MockAssessmentRepository) GetByMaterialID(ctx context.Context, material
 
 // MockAttemptRepository is a mock implementation of repository.AttemptRepository.
 type MockAttemptRepository struct {
-	CreateFn                       func(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
-	GetByIDFn                      func(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
-	GetAnswersByAttemptIDFn        func(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
-	ListByUserIDFn                 func(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error)
-	CountByAssessmentAndStudentFn  func(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
+	CreateFn                      func(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
+	GetByIDFn                     func(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
+	GetAnswersByAttemptIDFn       func(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
+	ListByUserIDFn                func(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error)
+	CountByAssessmentAndStudentFn func(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
 }
 
 func (m *MockAttemptRepository) Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error {
@@ -139,7 +139,7 @@ func (m *MockAttemptRepository) CountByAssessmentAndStudent(ctx context.Context,
 
 // MockProgressRepository is a mock implementation of repository.ProgressRepository.
 type MockProgressRepository struct {
-	UpsertFn              func(ctx context.Context, progress *pgentities.Progress) error
+	UpsertFn               func(ctx context.Context, progress *pgentities.Progress) error
 	GetByMaterialAndUserFn func(ctx context.Context, materialID, userID uuid.UUID) (*pgentities.Progress, error)
 }
 
@@ -308,10 +308,10 @@ func (m *MockPublisher) Close() error {
 // MockLogger is a no-op mock implementation of logger.Logger for tests.
 type MockLogger struct{}
 
-func (MockLogger) Debug(_ string, _ ...interface{})       {}
-func (MockLogger) Info(_ string, _ ...interface{})        {}
-func (MockLogger) Warn(_ string, _ ...interface{})        {}
-func (MockLogger) Error(_ string, _ ...interface{})       {}
-func (MockLogger) Fatal(_ string, _ ...interface{})       {}
-func (l MockLogger) With(_ ...interface{}) logger.Logger  { return l }
-func (MockLogger) Sync() error                            { return nil }
+func (MockLogger) Debug(_ string, _ ...interface{})      {}
+func (MockLogger) Info(_ string, _ ...interface{})       {}
+func (MockLogger) Warn(_ string, _ ...interface{})       {}
+func (MockLogger) Error(_ string, _ ...interface{})      {}
+func (MockLogger) Fatal(_ string, _ ...interface{})      {}
+func (l MockLogger) With(_ ...interface{}) logger.Logger { return l }
+func (MockLogger) Sync() error                           { return nil }
