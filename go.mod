@@ -7,11 +7,12 @@ require (
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.53.0
 	github.com/EduGoGroup/edugo-shared/auth v0.50.1
 	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.1
-	github.com/EduGoGroup/edugo-shared/common v0.50.1
+	github.com/EduGoGroup/edugo-shared/common v0.50.2
 	github.com/EduGoGroup/edugo-shared/logger v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1
-	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.2
+	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3
 	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.1
+	github.com/EduGoGroup/edugo-shared/repository v0.3.0
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
@@ -111,7 +112,7 @@ require (
 	golang.org/x/arch v0.24.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect

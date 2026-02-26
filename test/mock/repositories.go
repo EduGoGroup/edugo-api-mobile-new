@@ -9,6 +9,7 @@ import (
 	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 	"github.com/EduGoGroup/edugo-shared/logger"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/domain/repository"
 )
@@ -94,7 +95,7 @@ type MockAttemptRepository struct {
 	CreateFn                      func(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
 	GetByIDFn                     func(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
 	GetAnswersByAttemptIDFn       func(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
-	ListByUserIDFn                func(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error)
+	ListByUserIDFn                func(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error)
 	CountByAssessmentAndStudentFn func(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
 }
 
@@ -119,9 +120,9 @@ func (m *MockAttemptRepository) GetAnswersByAttemptID(ctx context.Context, attem
 	return nil, nil
 }
 
-func (m *MockAttemptRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error) {
+func (m *MockAttemptRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 	if m.ListByUserIDFn != nil {
-		return m.ListByUserIDFn(ctx, userID, limit, offset)
+		return m.ListByUserIDFn(ctx, userID, limit, offset, filters)
 	}
 	return nil, 0, nil
 }

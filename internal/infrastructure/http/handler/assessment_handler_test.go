@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
@@ -309,7 +310,7 @@ func TestAssessmentHandler_ListUserAttempts(t *testing.T) {
 			query:   "?limit=10&offset=0",
 			setAuth: true,
 			setupAtt: func(m *mock.MockAttemptRepository) {
-				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int) ([]pgentities.AssessmentAttempt, int, error) {
+				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					return nil, 0, nil
 				}
 			},

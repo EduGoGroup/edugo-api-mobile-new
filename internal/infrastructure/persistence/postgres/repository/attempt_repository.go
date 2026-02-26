@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	sharedErrors "github.com/EduGoGroup/edugo-shared/common/errors"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 )
@@ -60,14 +61,17 @@ func (r *AttemptRepository) GetAnswersByAttemptID(ctx context.Context, attemptID
 }
 
 // ListByUserID returns paginated attempts for a user.
-func (r *AttemptRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error) {
+func (r *AttemptRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
+	query := r.db.WithContext(ctx).Model(&pgentities.AssessmentAttempt{}).Where("student_id = ?", userID)
+	query = filters.ApplySearch(query)
+
 	var total int64
-	if err := r.db.WithContext(ctx).Model(&pgentities.AssessmentAttempt{}).Where("student_id = ?", userID).Count(&total).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, sharedErrors.NewDatabaseError("count attempts", err)
 	}
 
 	var attempts []pgentities.AssessmentAttempt
-	if err := r.db.WithContext(ctx).Where("student_id = ?", userID).Order("created_at DESC").Limit(limit).Offset(offset).Find(&attempts).Error; err != nil {
+	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&attempts).Error; err != nil {
 		return nil, 0, sharedErrors.NewDatabaseError("list attempts by user", err)
 	}
 

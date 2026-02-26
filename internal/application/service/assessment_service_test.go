@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
@@ -523,7 +524,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			limit:  0,
 			offset: 0,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
-				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int) ([]pgentities.AssessmentAttempt, int, error) {
+				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					assert.Equal(t, 20, limit)
 					return []pgentities.AssessmentAttempt{
 						{ID: uuid.New(), AssessmentID: uuid.New(), StudentID: userID, Status: "completed", StartedAt: time.Now()},
@@ -538,7 +539,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			limit:  200,
 			offset: 0,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
-				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int) ([]pgentities.AssessmentAttempt, int, error) {
+				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					assert.Equal(t, 100, limit)
 					return nil, 0, nil
 				}
@@ -551,7 +552,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			limit:  10,
 			offset: 0,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
-				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int) ([]pgentities.AssessmentAttempt, int, error) {
+				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					return nil, 0, errors.NewDatabaseError("list", nil)
 				}
 			},
@@ -567,7 +568,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			}
 
 			svc := newTestAssessmentService(nil, attemptRepo, nil)
-			resp, err := svc.ListAttemptsByUser(ctx, userID, tt.limit, tt.offset)
+			resp, err := svc.ListAttemptsByUser(ctx, userID, tt.limit, tt.offset, sharedrepo.ListFilters{})
 
 			if tt.wantErr {
 				require.Error(t, err)
