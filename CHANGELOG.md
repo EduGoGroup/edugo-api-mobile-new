@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.4.0] - 2026-02-26
+
+### Tipo de Release: patch
+
+- chore: upgrade edugo-shared/auth to v0.51.0
+- feat: Sprint 8 — add version and updatedAt to screen config response
+
+---
+
 ## [0.3.0] - 2026-02-26
 
 ### Tipo de Release: patch
