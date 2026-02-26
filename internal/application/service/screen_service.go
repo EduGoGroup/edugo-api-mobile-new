@@ -50,13 +50,16 @@ func (s *ScreenService) GetScreen(ctx context.Context, screenKey string) (*dto.S
 	if s.iamClient != nil {
 		combined, err := s.iamClient.ResolveScreenByKey(ctx, screenKey, "")
 		if err == nil && combined != nil {
+			updatedAt := combined.UpdatedAt
 			resp := &dto.ScreenResponse{
 				ScreenKey:  combined.ScreenKey,
 				Name:       combined.ScreenName,
 				Pattern:    combined.Pattern,
+				Version:    combined.Version,
 				Definition: combined.Template,
 				SlotData:   combined.SlotData,
 				IsActive:   true,
+				UpdatedAt:  &updatedAt,
 			}
 			if s.cache != nil {
 				cacheKey := fmt.Sprintf("screen:%s", screenKey)
@@ -136,14 +139,17 @@ func (s *ScreenService) SavePreferences(ctx context.Context, screenKey, userID s
 }
 
 func toScreenResponse(c *repository.ScreenComposed) *dto.ScreenResponse {
+	updatedAt := c.Instance.UpdatedAt
 	return &dto.ScreenResponse{
 		ScreenKey:   c.Instance.ScreenKey,
 		Name:        c.Instance.Name,
 		Description: c.Instance.Description,
 		Pattern:     c.Template.Pattern,
+		Version:     c.Template.Version,
 		Definition:  c.Template.Definition,
 		SlotData:    c.Instance.SlotData,
 		IsActive:    c.Instance.IsActive,
+		UpdatedAt:   &updatedAt,
 	}
 }
 

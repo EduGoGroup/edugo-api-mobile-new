@@ -2,6 +2,7 @@ package dto
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // ScreenResponse is the API response for a composed screen.
@@ -10,9 +11,11 @@ type ScreenResponse struct {
 	Name        string          `json:"name"`
 	Description *string         `json:"description,omitempty"`
 	Pattern     string          `json:"pattern"`
+	Version     int             `json:"version"`
 	Definition  json.RawMessage `json:"definition"`
 	SlotData    json.RawMessage `json:"slot_data"`
 	IsActive    bool            `json:"is_active"`
+	UpdatedAt   *time.Time      `json:"updated_at,omitempty"`
 }
 
 // NavigationNode represents a single node in the navigation tree.
