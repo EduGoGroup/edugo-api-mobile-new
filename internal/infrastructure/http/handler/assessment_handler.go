@@ -2,12 +2,14 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/application/dto"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/application/service"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/http/middleware"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 )
 
 // AssessmentHandler handles assessment and attempt HTTP endpoints.
@@ -123,6 +125,8 @@ func (h *AssessmentHandler) GetAttemptResult(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit results"
 // @Param offset query int false "Offset for pagination"
+// @Param search query string false "Search term (ILIKE)"
+// @Param search_fields query string false "Comma-separated fields to search"
 // @Success 200 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -147,8 +151,15 @@ func (h *AssessmentHandler) ListUserAttempts(c *gin.Context) {
 			offset = parsed
 		}
 	}
+	var filters sharedrepo.ListFilters
+	if search := c.Query("search"); search != "" {
+		filters.Search = search
+		if fields := c.Query("search_fields"); fields != "" {
+			filters.SearchFields = strings.Split(fields, ",")
+		}
+	}
 
-	result, err := h.svc.ListAttemptsByUser(c.Request.Context(), userID, limit, offset)
+	result, err := h.svc.ListAttemptsByUser(c.Request.Context(), userID, limit, offset, filters)
 	if err != nil {
 		middleware.HandleError(c, err)
 		return

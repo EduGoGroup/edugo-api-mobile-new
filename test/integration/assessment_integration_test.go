@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	pgrepo "github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/persistence/postgres/repository"
 )
@@ -155,7 +156,7 @@ func TestAssessmentAndAttemptCRUD(t *testing.T) {
 		assert.Equal(t, 1, count)
 
 		// List by user
-		attempts, total, err := attemptRepo.ListByUserID(ctx, studentID, 10, 0)
+		attempts, total, err := attemptRepo.ListByUserID(ctx, studentID, 10, 0, sharedrepo.ListFilters{})
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, total, 1)
 		assert.GreaterOrEqual(t, len(attempts), 1)

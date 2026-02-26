@@ -915,6 +915,14 @@ paths:
         in: query
         name: offset
         type: integer
+      - description: Search term (ILIKE)
+        in: query
+        name: search
+        type: string
+      - description: Comma-separated fields to search
+        in: query
+        name: search_fields
+        type: string
       produces:
       - application/json
       responses:

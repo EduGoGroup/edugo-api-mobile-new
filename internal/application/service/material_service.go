@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -94,6 +95,10 @@ func (s *MaterialService) List(ctx context.Context, req dto.ListMaterialsRequest
 		Status:   req.Status,
 		Limit:    req.Limit,
 		Offset:   req.Offset,
+		Search:   req.Search,
+	}
+	if req.SearchFields != "" {
+		filter.SearchFields = strings.Split(req.SearchFields, ",")
 	}
 
 	materials, total, err := s.repo.List(ctx, filter)
