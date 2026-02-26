@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	sharedErrors "github.com/EduGoGroup/edugo-shared/common/errors"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 
@@ -58,6 +59,10 @@ func (r *MaterialRepository) List(ctx context.Context, filter repository.Materia
 	if filter.Status != nil {
 		query = query.Where("status = ?", *filter.Status)
 	}
+
+	// Apply search using shared ListFilters helper
+	searchFilters := sharedrepo.ListFilters{Search: filter.Search, SearchFields: filter.SearchFields}
+	query = searchFilters.ApplySearch(query)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

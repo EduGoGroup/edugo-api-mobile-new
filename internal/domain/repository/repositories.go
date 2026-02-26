@@ -8,6 +8,7 @@ import (
 
 	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 )
 
 // MaterialRepository defines operations for materials in PostgreSQL.
@@ -21,11 +22,13 @@ type MaterialRepository interface {
 
 // MaterialFilter holds query parameters for listing materials.
 type MaterialFilter struct {
-	SchoolID *uuid.UUID
-	AuthorID *uuid.UUID
-	Status   *string
-	Limit    int
-	Offset   int
+	SchoolID     *uuid.UUID
+	AuthorID     *uuid.UUID
+	Status       *string
+	Limit        int
+	Offset       int
+	Search       string
+	SearchFields []string
 }
 
 // AssessmentRepository defines operations for assessments in PostgreSQL.
@@ -39,7 +42,7 @@ type AttemptRepository interface {
 	Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
 	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
 	GetAnswersByAttemptID(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
-	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]pgentities.AssessmentAttempt, int, error)
+	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error)
 	CountByAssessmentAndStudent(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
 }
 

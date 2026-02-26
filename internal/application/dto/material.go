@@ -77,11 +77,13 @@ type PresignedURLResponse struct {
 
 // ListMaterialsRequest holds query parameters for listing materials.
 type ListMaterialsRequest struct {
-	SchoolID *uuid.UUID `form:"school_id"`
-	AuthorID *uuid.UUID `form:"author_id"`
-	Status   *string    `form:"status"`
-	Limit    int        `form:"limit,default=20"`
-	Offset   int        `form:"offset,default=0"`
+	SchoolID     *uuid.UUID `form:"school_id"`
+	AuthorID     *uuid.UUID `form:"author_id"`
+	Status       *string    `form:"status"`
+	Limit        int        `form:"limit,default=20"`
+	Offset       int        `form:"offset,default=0"`
+	Search       string     `form:"search"`
+	SearchFields string     `form:"search_fields"`
 }
 
 // PaginatedResponse wraps a list with pagination metadata.

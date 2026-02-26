@@ -8,6 +8,7 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
 	"github.com/EduGoGroup/edugo-shared/logger"
+	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 
@@ -270,7 +271,7 @@ func (s *AssessmentService) GetAttemptResult(ctx context.Context, attemptID uuid
 }
 
 // ListAttemptsByUser returns a paginated list of attempts for a user.
-func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.UUID, limit, offset int) (*dto.PaginatedResponse, error) {
+func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) (*dto.PaginatedResponse, error) {
 	if limit <= 0 {
 		limit = 20
 	}
@@ -278,7 +279,7 @@ func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.
 		limit = 100
 	}
 
-	attempts, total, err := s.attemptRepo.ListByUserID(ctx, userID, limit, offset)
+	attempts, total, err := s.attemptRepo.ListByUserID(ctx, userID, limit, offset, filters)
 	if err != nil {
 		return nil, err
 	}
