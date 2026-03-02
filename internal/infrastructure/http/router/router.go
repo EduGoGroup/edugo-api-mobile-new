@@ -58,6 +58,24 @@ func Setup(c *container.Container) *gin.Engine {
 		materials.POST("/:id/assessment/attempts", sharedmw.RequirePermission(enum.PermissionAssessmentsAttempt), c.Handlers.Assessment.CreateAttempt)
 	}
 
+	// Assessment Management (teacher/admin)
+	assessments := v1.Group("/assessments")
+	{
+		assessments.GET("", sharedmw.RequirePermission(enum.PermissionAssessmentsRead), c.Handlers.AssessmentMgmt.List)
+		assessments.GET("/:id", sharedmw.RequirePermission(enum.PermissionAssessmentsRead), c.Handlers.AssessmentMgmt.GetByID)
+		assessments.POST("", sharedmw.RequirePermission(enum.PermissionAssessmentsCreate), c.Handlers.AssessmentMgmt.Create)
+		assessments.PUT("/:id", sharedmw.RequirePermission(enum.PermissionAssessmentsUpdate), c.Handlers.AssessmentMgmt.Update)
+		assessments.PATCH("/:id/publish", sharedmw.RequirePermission(enum.PermissionAssessmentsPublish), c.Handlers.AssessmentMgmt.Publish)
+		assessments.PATCH("/:id/archive", sharedmw.RequirePermission(enum.PermissionAssessmentsUpdate), c.Handlers.AssessmentMgmt.Archive)
+		assessments.DELETE("/:id", sharedmw.RequirePermission(enum.PermissionAssessmentsDelete), c.Handlers.AssessmentMgmt.Delete)
+
+		// Question management (nested under assessment)
+		assessments.GET("/:id/questions", sharedmw.RequirePermission(enum.PermissionAssessmentsRead), c.Handlers.AssessmentMgmt.GetQuestions)
+		assessments.POST("/:id/questions", sharedmw.RequirePermission(enum.PermissionAssessmentsCreate), c.Handlers.AssessmentMgmt.AddQuestion)
+		assessments.PUT("/:id/questions/:idx", sharedmw.RequirePermission(enum.PermissionAssessmentsUpdate), c.Handlers.AssessmentMgmt.UpdateQuestion)
+		assessments.DELETE("/:id/questions/:idx", sharedmw.RequirePermission(enum.PermissionAssessmentsDelete), c.Handlers.AssessmentMgmt.DeleteQuestion)
+	}
+
 	// Attempts (top-level)
 	attempts := v1.Group("/attempts")
 	{

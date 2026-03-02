@@ -27,14 +27,15 @@ import (
 
 // Handlers groups all HTTP handlers.
 type Handlers struct {
-	Health     *handler.HealthHandler
-	Material   *handler.MaterialHandler
-	Assessment *handler.AssessmentHandler
-	Progress   *handler.ProgressHandler
-	Screen     *handler.ScreenHandler
-	Stats      *handler.StatsHandler
-	Summary    *handler.SummaryHandler
-	Guardian   *handler.GuardianHandler
+	Health         *handler.HealthHandler
+	Material       *handler.MaterialHandler
+	Assessment     *handler.AssessmentHandler
+	AssessmentMgmt *handler.AssessmentManagementHandler
+	Progress       *handler.ProgressHandler
+	Screen         *handler.ScreenHandler
+	Stats          *handler.StatsHandler
+	Summary        *handler.SummaryHandler
+	Guardian       *handler.GuardianHandler
 }
 
 // Container is the root dependency injection container.
@@ -170,6 +171,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	// --- Application Services ---
 	materialSvc := service.NewMaterialService(materialRepo, s3Client, publisher, log, cfg.Messaging.RabbitMQ.Exchange)
 	assessmentSvc := service.NewAssessmentService(assessmentRepo, attemptRepo, mongoAssessmentRepo, log)
+	assessmentMgmtSvc := service.NewAssessmentManagementService(assessmentRepo, mongoAssessmentRepo, log)
 	progressSvc := service.NewProgressService(progressRepo, log)
 	screenSvc := service.NewScreenService(screenRepo, iamClient, cacheSvc, log)
 	statsSvc := service.NewStatsService(statsRepo, log)
@@ -178,14 +180,15 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 
 	// --- HTTP Handlers ---
 	c.Handlers = &Handlers{
-		Health:     handler.NewHealthHandler(db, mongoClient),
-		Material:   handler.NewMaterialHandler(materialSvc),
-		Assessment: handler.NewAssessmentHandler(assessmentSvc),
-		Progress:   handler.NewProgressHandler(progressSvc),
-		Screen:     handler.NewScreenHandler(screenSvc),
-		Stats:      handler.NewStatsHandler(statsSvc),
-		Summary:    handler.NewSummaryHandler(summarySvc),
-		Guardian:   handler.NewGuardianHandler(guardianSvc),
+		Health:         handler.NewHealthHandler(db, mongoClient),
+		Material:       handler.NewMaterialHandler(materialSvc),
+		Assessment:     handler.NewAssessmentHandler(assessmentSvc),
+		AssessmentMgmt: handler.NewAssessmentManagementHandler(assessmentMgmtSvc),
+		Progress:       handler.NewProgressHandler(progressSvc),
+		Screen:         handler.NewScreenHandler(screenSvc),
+		Stats:          handler.NewStatsHandler(statsSvc),
+		Summary:        handler.NewSummaryHandler(summarySvc),
+		Guardian:       handler.NewGuardianHandler(guardianSvc),
 	}
 
 	return c, nil
