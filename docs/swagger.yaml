@@ -9,6 +9,51 @@ definitions:
       time_spent_seconds:
         type: integer
     type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.ChildProgressResponse:
+    properties:
+      avg_score:
+        type: number
+      child_id:
+        type: string
+      child_name:
+        type: string
+      completed:
+        type: integer
+      completion_rate:
+        type: number
+      total_materials:
+        type: integer
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.ChildResponse:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAssessmentRequest:
+    properties:
+      material_id:
+        type: string
+      max_attempts:
+        minimum: 1
+        type: integer
+      pass_threshold:
+        maximum: 100
+        minimum: 0
+        type: integer
+      time_limit_minutes:
+        minimum: 1
+        type: integer
+      title:
+        type: string
+    required:
+    - title
+    type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAttemptRequest:
     properties:
       answers:
@@ -38,6 +83,101 @@ definitions:
     required:
     - title
     type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateQuestionRequest:
+    properties:
+      correct_answer:
+        type: string
+      difficulty:
+        enum:
+        - easy
+        - medium
+        - hard
+        type: string
+      explanation:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.OptionRequest'
+        type: array
+      points:
+        minimum: 1
+        type: integer
+      question_text:
+        type: string
+      question_type:
+        enum:
+        - multiple_choice
+        - true_false
+        - open
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    required:
+    - correct_answer
+    - difficulty
+    - points
+    - question_text
+    - question_type
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianRelationRequestDTO:
+    properties:
+      identifier:
+        description: email of the student
+        type: string
+      relationship_type:
+        description: parent, guardian, tutor, other
+        type: string
+    required:
+    - identifier
+    - relationship_type
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianRelationResponse:
+    properties:
+      created_at:
+        type: string
+      guardian_id:
+        type: string
+      guardian_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_primary:
+        type: boolean
+      relationship_type:
+        type: string
+      status:
+        type: string
+      student_id:
+        type: string
+      student_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianStatsResponse:
+    properties:
+      avg_score:
+        type: number
+      children_count:
+        type: integer
+      completion_rate:
+        type: number
+      total_materials:
+        type: integer
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.OptionRequest:
+    properties:
+      option_id:
+        type: string
+      option_text:
+        type: string
+    required:
+    - option_text
+    type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest:
     properties:
       preferences:
@@ -46,6 +186,21 @@ definitions:
         type: array
     required:
     - preferences
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateAssessmentRequest:
+    properties:
+      max_attempts:
+        minimum: 1
+        type: integer
+      pass_threshold:
+        maximum: 100
+        minimum: 0
+        type: integer
+      time_limit_minutes:
+        minimum: 1
+        type: integer
+      title:
+        type: string
     type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateMaterialRequest:
     properties:
@@ -61,6 +216,38 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateQuestionRequest:
+    properties:
+      correct_answer:
+        type: string
+      difficulty:
+        enum:
+        - easy
+        - medium
+        - hard
+        type: string
+      explanation:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.OptionRequest'
+        type: array
+      points:
+        minimum: 1
+        type: integer
+      question_text:
+        type: string
+      question_type:
+        enum:
+        - multiple_choice
+        - true_false
+        - open
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
     type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UploadCompleteRequest:
     properties:
@@ -98,6 +285,486 @@ info:
   title: EduGo API Mobile
   version: "1.0"
 paths:
+  /assessments:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Limit results
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List assessments for the teacher's school
+      tags:
+      - assessment-management
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAssessmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a manual assessment
+      tags:
+      - assessment-management
+  /assessments/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete an assessment (draft only, soft delete)
+      tags:
+      - assessment-management
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get assessment detail with questions
+      tags:
+      - assessment-management
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Assessment update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateAssessmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update an assessment (draft only)
+      tags:
+      - assessment-management
+  /assessments/{id}/archive:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Archive an assessment
+      tags:
+      - assessment-management
+  /assessments/{id}/publish:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Publish an assessment
+      tags:
+      - assessment-management
+  /assessments/{id}/questions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all questions for an assessment
+      tags:
+      - assessment-questions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add a question to an assessment
+      tags:
+      - assessment-questions
+  /assessments/{id}/questions/{idx}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question index (0-based)
+        in: path
+        name: idx
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a question by index
+      tags:
+      - assessment-questions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question index (0-based)
+        in: path
+        name: idx
+        required: true
+        type: integer
+      - description: Question update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a question by index
+      tags:
+      - assessment-questions
   /attempts/{id}/results:
     get:
       consumes:
@@ -141,6 +808,222 @@ paths:
       summary: Get result of an assessment attempt
       tags:
       - assessments
+  /guardian-relations/{id}/approve:
+    post:
+      parameters:
+      - description: Relation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve a pending guardian relation request
+      tags:
+      - guardian-relations
+  /guardian-relations/{id}/reject:
+    post:
+      parameters:
+      - description: Relation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reject a pending guardian relation request
+      tags:
+      - guardian-relations
+  /guardian-relations/pending:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianRelationResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List pending guardian relation requests for a school
+      tags:
+      - guardian-relations
+  /guardian-relations/request:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Relation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianRelationRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianRelationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Request a guardian-student link
+      tags:
+      - guardian-relations
+  /guardians/me/children:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.ChildResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List a guardian's active children
+      tags:
+      - guardians
+  /guardians/me/children/{childId}/progress:
+    get:
+      parameters:
+      - description: Child User ID (UUID)
+        in: path
+        name: childId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.ChildProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get academic progress for a guardian's child
+      tags:
+      - guardians
+  /guardians/me/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.GuardianStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get aggregate stats for all children of a guardian
+      tags:
+      - guardians
   /health:
     get:
       description: Returns the health status of the API and its dependencies
