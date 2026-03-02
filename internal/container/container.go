@@ -34,6 +34,7 @@ type Handlers struct {
 	Screen     *handler.ScreenHandler
 	Stats      *handler.StatsHandler
 	Summary    *handler.SummaryHandler
+	Guardian   *handler.GuardianHandler
 }
 
 // Container is the root dependency injection container.
@@ -156,6 +157,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	progressRepo := pgrepo.NewProgressRepository(db)
 	screenRepo := pgrepo.NewScreenRepository(db)
 	statsRepo := pgrepo.NewStatsRepository(db)
+	guardianRepo := pgrepo.NewGuardianRepository(db)
 
 	// --- MongoDB Repositories ---
 	var mongoAssessmentRepo *mongorepo.MongoAssessmentRepository
@@ -172,6 +174,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	screenSvc := service.NewScreenService(screenRepo, iamClient, cacheSvc, log)
 	statsSvc := service.NewStatsService(statsRepo, log)
 	summarySvc := service.NewSummaryService(mongoSummaryRepo, log)
+	guardianSvc := service.NewGuardianService(guardianRepo, log)
 
 	// --- HTTP Handlers ---
 	c.Handlers = &Handlers{
@@ -182,6 +185,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 		Screen:     handler.NewScreenHandler(screenSvc),
 		Stats:      handler.NewStatsHandler(statsSvc),
 		Summary:    handler.NewSummaryHandler(summarySvc),
+		Guardian:   handler.NewGuardianHandler(guardianSvc),
 	}
 
 	return c, nil
