@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.5.0] - 2026-03-02
+
+### Tipo de Release: patch
+
+- fix: address Copilot review feedback
+- chore: bump edugo-infrastructure/postgres v0.56.0 and edugo-shared/common v0.51.0
+- feat: add guardian auto-registration endpoints
+
+---
+
 ## [0.4.0] - 2026-02-26
 
 ### Tipo de Release: patch
