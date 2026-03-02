@@ -31,10 +31,25 @@ type MaterialFilter struct {
 	SearchFields []string
 }
 
+// AssessmentFilter holds query parameters for listing assessments.
+type AssessmentFilter struct {
+	SchoolID     *uuid.UUID
+	Status       *string
+	Limit        int
+	Offset       int
+	Search       string
+	SearchFields []string
+}
+
 // AssessmentRepository defines operations for assessments in PostgreSQL.
 type AssessmentRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error)
 	GetByMaterialID(ctx context.Context, materialID uuid.UUID) (*pgentities.Assessment, error)
+	List(ctx context.Context, filter AssessmentFilter) ([]pgentities.Assessment, int, error)
+	Create(ctx context.Context, assessment *pgentities.Assessment) error
+	Update(ctx context.Context, assessment *pgentities.Assessment) error
+	SoftDelete(ctx context.Context, id uuid.UUID) error
+	UpdateQuestionsCount(ctx context.Context, id uuid.UUID, count int) error
 }
 
 // AttemptRepository defines operations for assessment attempts in PostgreSQL.
@@ -85,6 +100,9 @@ type MaterialStatsResult struct {
 // MongoAssessmentRepository defines operations for assessment questions in MongoDB.
 type MongoAssessmentRepository interface {
 	GetByMaterialID(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
+	GetByObjectID(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error)
+	Create(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error)
+	ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error
 }
 
 // MongoSummaryRepository defines operations for material summaries in MongoDB.

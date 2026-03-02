@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -36,4 +37,61 @@ func (r *MongoAssessmentRepository) GetByMaterialID(ctx context.Context, materia
 		return nil, errors.NewDatabaseError("get mongo assessment", err)
 	}
 	return &result, nil
+}
+
+// GetByObjectID retrieves the assessment document by its MongoDB _id.
+func (r *MongoAssessmentRepository) GetByObjectID(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error) {
+	oid, err := bson.ObjectIDFromHex(objectID)
+	if err != nil {
+		return nil, errors.NewValidationError("invalid mongo object id")
+	}
+
+	var result mongoentities.MaterialAssessment
+	err = r.collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.NewNotFoundError("material assessment")
+		}
+		return nil, errors.NewDatabaseError("get mongo assessment by id", err)
+	}
+	return &result, nil
+}
+
+// Create inserts a new assessment document into MongoDB and returns the ObjectID hex string.
+func (r *MongoAssessmentRepository) Create(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error) {
+	result, err := r.collection.InsertOne(ctx, doc)
+	if err != nil {
+		return "", errors.NewDatabaseError("create mongo assessment", err)
+	}
+	oid, ok := result.InsertedID.(bson.ObjectID)
+	if !ok {
+		return "", errors.NewInternalError("unexpected inserted id type", nil)
+	}
+	return oid.Hex(), nil
+}
+
+// ReplaceQuestions replaces the entire questions array and updates metadata.
+func (r *MongoAssessmentRepository) ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error {
+	oid, err := bson.ObjectIDFromHex(objectID)
+	if err != nil {
+		return errors.NewValidationError("invalid mongo object id")
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"questions":       questions,
+			"total_questions": len(questions),
+			"total_points":    totalPoints,
+			"updated_at":      time.Now(),
+		},
+	}
+
+	result, err := r.collection.UpdateByID(ctx, oid, update)
+	if err != nil {
+		return errors.NewDatabaseError("replace questions", err)
+	}
+	if result.MatchedCount == 0 {
+		return errors.NewNotFoundError("material assessment")
+	}
+	return nil
 }

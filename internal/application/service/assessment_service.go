@@ -10,6 +10,7 @@ import (
 	"github.com/EduGoGroup/edugo-shared/logger"
 	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 
+	mongoentities "github.com/EduGoGroup/edugo-infrastructure/mongodb/entities"
 	pgentities "github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/application/dto"
@@ -226,14 +227,22 @@ func (s *AssessmentService) GetAttemptResult(ctx context.Context, attemptID uuid
 		return nil, err
 	}
 
-	// Get the assessment to find the material_id for MongoDB lookup
+	// Get the assessment to find the MongoDB reference
 	assessment, err := s.assessmentRepo.GetByID(ctx, attempt.AssessmentID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch questions from MongoDB for explanations and correct answers
-	mongoDoc, mongoErr := s.mongoAssessmentRepo.GetByMaterialID(ctx, assessment.MaterialID.String())
+	// Fetch questions from MongoDB for explanations and correct answers.
+	// For material-based assessments, look up by material_id.
+	// For manual assessments (no material), look up by mongo_document_id.
+	var mongoDoc *mongoentities.MaterialAssessment
+	var mongoErr error
+	if assessment.MaterialID != nil {
+		mongoDoc, mongoErr = s.mongoAssessmentRepo.GetByMaterialID(ctx, assessment.MaterialID.String())
+	} else if assessment.MongoDocumentID != "" {
+		mongoDoc, mongoErr = s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
+	}
 
 	answersResponse := make([]dto.AnswerResultResponse, len(pgAnswers))
 	for i, a := range pgAnswers {
