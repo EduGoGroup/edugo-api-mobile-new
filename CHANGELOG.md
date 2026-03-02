@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.6.0] - 2026-03-02
+
+### Tipo de Release: patch
+
+- chore: bump edugo-infrastructure/postgres to v0.57.0
+- fix: address 8 Copilot review comments
+- feat: Phase 3 - Assessment CRUD + Questions API for teachers
+
+---
+
 ## [0.5.0] - 2026-03-02
 
 ### Tipo de Release: patch
