@@ -88,5 +88,22 @@ func Setup(c *container.Container) *gin.Engine {
 		stats.GET("/global", sharedmw.RequirePermission(enum.PermissionStatsGlobal), c.Handlers.Stats.GetGlobalStats)
 	}
 
+	// Guardian Relations (self-registration)
+	guardianRelations := v1.Group("/guardian-relations")
+	{
+		guardianRelations.POST("/request", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.RequestRelation)
+		guardianRelations.GET("/pending", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRead), c.Handlers.Guardian.ListPendingRequests)
+		guardianRelations.POST("/:id/approve", sharedmw.RequirePermission(enum.PermissionGuardianRelationsApprove), c.Handlers.Guardian.ApproveRequest)
+		guardianRelations.POST("/:id/reject", sharedmw.RequirePermission(enum.PermissionGuardianRelationsApprove), c.Handlers.Guardian.RejectRequest)
+	}
+
+	// Guardians (my children + stats)
+	guardians := v1.Group("/guardians")
+	{
+		guardians.GET("/me/children", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.ListMyChildren)
+		guardians.GET("/me/children/:childId/progress", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.GetChildProgress)
+		guardians.GET("/me/stats", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.GetMyStats)
+	}
+
 	return r
 }
