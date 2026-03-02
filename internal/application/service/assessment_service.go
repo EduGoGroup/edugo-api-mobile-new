@@ -243,6 +243,10 @@ func (s *AssessmentService) GetAttemptResult(ctx context.Context, attemptID uuid
 	} else if assessment.MongoDocumentID != "" {
 		mongoDoc, mongoErr = s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
 	}
+	if mongoErr != nil {
+		s.log.Warn("failed to fetch questions from MongoDB for attempt result enrichment",
+			"error", mongoErr, "attempt_id", attemptID, "assessment_id", assessment.ID)
+	}
 
 	answersResponse := make([]dto.AnswerResultResponse, len(pgAnswers))
 	for i, a := range pgAnswers {

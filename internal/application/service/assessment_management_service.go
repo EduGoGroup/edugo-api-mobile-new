@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,12 +40,30 @@ func NewAssessmentManagementService(
 
 // ListAssessments returns a paginated list of assessments for the given school.
 func (s *AssessmentManagementService) ListAssessments(ctx context.Context, schoolID uuid.UUID, req dto.ListAssessmentsRequest) (*dto.PaginatedResponse, error) {
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+	if req.Limit > 100 {
+		req.Limit = 100
+	}
+
+	var searchFields []string
+	if req.SearchFields != "" {
+		for _, f := range strings.Split(req.SearchFields, ",") {
+			trimmed := strings.TrimSpace(f)
+			if trimmed != "" {
+				searchFields = append(searchFields, trimmed)
+			}
+		}
+	}
+
 	filter := repository.AssessmentFilter{
-		SchoolID: &schoolID,
-		Status:   req.Status,
-		Limit:    req.Limit,
-		Offset:   req.Offset,
-		Search:   req.Search,
+		SchoolID:     &schoolID,
+		Status:       req.Status,
+		Limit:        req.Limit,
+		Offset:       req.Offset,
+		Search:       req.Search,
+		SearchFields: searchFields,
 	}
 
 	assessments, total, err := s.assessmentRepo.List(ctx, filter)
@@ -80,9 +99,11 @@ func (s *AssessmentManagementService) GetAssessmentDetail(ctx context.Context, i
 	if assessment.MongoDocumentID != "" {
 		mongoDoc, err := s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
 		if err != nil {
-			s.log.Warn("failed to fetch questions from MongoDB",
+			// For the management/teacher view, questions are essential.
+			// Return error for non-NotFound failures.
+			s.log.Error("failed to fetch questions from MongoDB",
 				"error", err, "assessment_id", id, "mongo_document_id", assessment.MongoDocumentID)
-			return resp, nil
+			return nil, errors.NewInternalError("failed to fetch questions", err)
 		}
 		resp.Questions = toTeacherQuestions(mongoDoc.Questions)
 	}
@@ -141,6 +162,11 @@ func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req 
 	}
 
 	if err := s.assessmentRepo.Create(ctx, assessment); err != nil {
+		// Compensating delete: remove the orphaned MongoDB document
+		if delErr := s.mongoAssessmentRepo.Delete(ctx, mongoID); delErr != nil {
+			s.log.Error("failed to rollback mongo assessment after PG create failure",
+				"error", delErr, "mongo_id", mongoID)
+		}
 		return nil, err
 	}
 
@@ -318,7 +344,7 @@ func (s *AssessmentManagementService) AddQuestion(ctx context.Context, assessmen
 	}
 
 	if err := s.assessmentRepo.UpdateQuestionsCount(ctx, assessmentID, len(questions)); err != nil {
-		s.log.Warn("failed to update questions_count in postgres", "error", err, "assessment_id", assessmentID)
+		return nil, errors.NewInternalError("failed to update questions count", err)
 	}
 
 	return toTeacherQuestions(questions), nil
@@ -418,7 +444,7 @@ func (s *AssessmentManagementService) DeleteQuestion(ctx context.Context, assess
 	}
 
 	if err := s.assessmentRepo.UpdateQuestionsCount(ctx, assessmentID, len(questions)); err != nil {
-		s.log.Warn("failed to update questions_count in postgres", "error", err, "assessment_id", assessmentID)
+		return nil, errors.NewInternalError("failed to update questions count", err)
 	}
 
 	return toTeacherQuestions(questions), nil

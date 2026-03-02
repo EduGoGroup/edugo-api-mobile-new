@@ -102,6 +102,7 @@ type MongoAssessmentRepository interface {
 	GetByMaterialID(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
 	GetByObjectID(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error)
 	Create(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error)
+	Delete(ctx context.Context, objectID string) error
 	ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error
 }
 

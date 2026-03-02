@@ -287,6 +287,7 @@ type MockMongoAssessmentRepository struct {
 	GetByMaterialIDFn  func(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
 	GetByObjectIDFn    func(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error)
 	CreateFn           func(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error)
+	DeleteFn           func(ctx context.Context, objectID string) error
 	ReplaceQuestionsFn func(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error
 }
 
@@ -309,6 +310,13 @@ func (m *MockMongoAssessmentRepository) Create(ctx context.Context, doc *mongoen
 		return m.CreateFn(ctx, doc)
 	}
 	return "000000000000000000000000", nil
+}
+
+func (m *MockMongoAssessmentRepository) Delete(ctx context.Context, objectID string) error {
+	if m.DeleteFn != nil {
+		return m.DeleteFn(ctx, objectID)
+	}
+	return nil
 }
 
 func (m *MockMongoAssessmentRepository) ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error {

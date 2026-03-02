@@ -52,6 +52,13 @@ func (r *AssessmentRepository) GetByMaterialID(ctx context.Context, materialID u
 	return &a, nil
 }
 
+// allowedAssessmentSearchFields defines the whitelist of columns that can be
+// used in search queries to prevent SQL injection.
+var allowedAssessmentSearchFields = map[string]bool{
+	"title":  true,
+	"status": true,
+}
+
 // List retrieves assessments matching the given filter.
 func (r *AssessmentRepository) List(ctx context.Context, filter domainrepo.AssessmentFilter) ([]pgentities.Assessment, int, error) {
 	query := r.db.WithContext(ctx).Model(&pgentities.Assessment{})
@@ -70,8 +77,16 @@ func (r *AssessmentRepository) List(ctx context.Context, filter domainrepo.Asses
 		var clauses []string
 		var args []interface{}
 		for _, field := range searchFields {
+			if !allowedAssessmentSearchFields[field] {
+				continue
+			}
 			clauses = append(clauses, field+" ILIKE ?")
 			args = append(args, "%"+filter.Search+"%")
+		}
+		if len(clauses) == 0 {
+			// Fallback to title if no valid fields
+			clauses = []string{"title ILIKE ?"}
+			args = []interface{}{"%" + filter.Search + "%"}
 		}
 		query = query.Where(strings.Join(clauses, " OR "), args...)
 	}

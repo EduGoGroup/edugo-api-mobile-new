@@ -70,6 +70,23 @@ func (r *MongoAssessmentRepository) Create(ctx context.Context, doc *mongoentiti
 	return oid.Hex(), nil
 }
 
+// Delete removes an assessment document from MongoDB by its ObjectID.
+func (r *MongoAssessmentRepository) Delete(ctx context.Context, objectID string) error {
+	oid, err := bson.ObjectIDFromHex(objectID)
+	if err != nil {
+		return errors.NewValidationError("invalid mongo object id")
+	}
+
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": oid})
+	if err != nil {
+		return errors.NewDatabaseError("delete mongo assessment", err)
+	}
+	if result.DeletedCount == 0 {
+		return errors.NewNotFoundError("material assessment")
+	}
+	return nil
+}
+
 // ReplaceQuestions replaces the entire questions array and updates metadata.
 func (r *MongoAssessmentRepository) ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error {
 	oid, err := bson.ObjectIDFromHex(objectID)
