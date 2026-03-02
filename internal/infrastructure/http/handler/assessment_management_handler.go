@@ -64,6 +64,7 @@ func (h *AssessmentManagementHandler) List(c *gin.Context) {
 // @Param id path string true "Assessment ID (UUID)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Security BearerAuth
@@ -131,6 +132,7 @@ func (h *AssessmentManagementHandler) Create(c *gin.Context) {
 // @Param request body dto.UpdateAssessmentRequest true "Assessment update data"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -165,6 +167,7 @@ func (h *AssessmentManagementHandler) Update(c *gin.Context) {
 // @Param id path string true "Assessment ID (UUID)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -193,6 +196,7 @@ func (h *AssessmentManagementHandler) Publish(c *gin.Context) {
 // @Param id path string true "Assessment ID (UUID)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -221,6 +225,7 @@ func (h *AssessmentManagementHandler) Archive(c *gin.Context) {
 // @Param id path string true "Assessment ID (UUID)"
 // @Success 204
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -250,6 +255,7 @@ func (h *AssessmentManagementHandler) Delete(c *gin.Context) {
 // @Param id path string true "Assessment ID (UUID)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Security BearerAuth
@@ -278,6 +284,7 @@ func (h *AssessmentManagementHandler) GetQuestions(c *gin.Context) {
 // @Param request body dto.CreateQuestionRequest true "Question data"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -314,6 +321,7 @@ func (h *AssessmentManagementHandler) AddQuestion(c *gin.Context) {
 // @Param request body dto.UpdateQuestionRequest true "Question update data"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
@@ -355,6 +363,7 @@ func (h *AssessmentManagementHandler) UpdateQuestion(c *gin.Context) {
 // @Param idx path int true "Question index (0-based)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 422 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}

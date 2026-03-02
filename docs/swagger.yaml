@@ -387,6 +387,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
         "404":
           description: Not Found
           schema:
@@ -426,6 +431,11 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties: true
             type: object
@@ -472,6 +482,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
         "404":
           description: Not Found
           schema:
@@ -512,6 +527,11 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties: true
             type: object
@@ -558,6 +578,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
         "404":
           description: Not Found
           schema:
@@ -601,6 +626,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
         "404":
           description: Not Found
           schema:
@@ -641,6 +671,11 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties: true
             type: object
@@ -689,6 +724,11 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties: true
             type: object
@@ -742,6 +782,11 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties: true
             type: object
