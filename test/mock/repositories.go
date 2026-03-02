@@ -68,8 +68,13 @@ func (m *MockMaterialRepository) GetWithVersions(ctx context.Context, id uuid.UU
 
 // MockAssessmentRepository is a mock implementation of repository.AssessmentRepository.
 type MockAssessmentRepository struct {
-	GetByIDFn         func(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error)
-	GetByMaterialIDFn func(ctx context.Context, materialID uuid.UUID) (*pgentities.Assessment, error)
+	GetByIDFn             func(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error)
+	GetByMaterialIDFn     func(ctx context.Context, materialID uuid.UUID) (*pgentities.Assessment, error)
+	ListFn                func(ctx context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error)
+	CreateFn              func(ctx context.Context, assessment *pgentities.Assessment) error
+	UpdateFn              func(ctx context.Context, assessment *pgentities.Assessment) error
+	SoftDeleteFn          func(ctx context.Context, id uuid.UUID) error
+	UpdateQuestionsCountFn func(ctx context.Context, id uuid.UUID, count int) error
 }
 
 func (m *MockAssessmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error) {
@@ -84,6 +89,41 @@ func (m *MockAssessmentRepository) GetByMaterialID(ctx context.Context, material
 		return m.GetByMaterialIDFn(ctx, materialID)
 	}
 	return nil, nil
+}
+
+func (m *MockAssessmentRepository) List(ctx context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
+	if m.ListFn != nil {
+		return m.ListFn(ctx, filter)
+	}
+	return nil, 0, nil
+}
+
+func (m *MockAssessmentRepository) Create(ctx context.Context, assessment *pgentities.Assessment) error {
+	if m.CreateFn != nil {
+		return m.CreateFn(ctx, assessment)
+	}
+	return nil
+}
+
+func (m *MockAssessmentRepository) Update(ctx context.Context, assessment *pgentities.Assessment) error {
+	if m.UpdateFn != nil {
+		return m.UpdateFn(ctx, assessment)
+	}
+	return nil
+}
+
+func (m *MockAssessmentRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	if m.SoftDeleteFn != nil {
+		return m.SoftDeleteFn(ctx, id)
+	}
+	return nil
+}
+
+func (m *MockAssessmentRepository) UpdateQuestionsCount(ctx context.Context, id uuid.UUID, count int) error {
+	if m.UpdateQuestionsCountFn != nil {
+		return m.UpdateQuestionsCountFn(ctx, id, count)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +284,11 @@ func (m *MockStatsRepository) MaterialStats(ctx context.Context, materialID uuid
 
 // MockMongoAssessmentRepository is a mock implementation of repository.MongoAssessmentRepository.
 type MockMongoAssessmentRepository struct {
-	GetByMaterialIDFn func(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
+	GetByMaterialIDFn  func(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error)
+	GetByObjectIDFn    func(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error)
+	CreateFn           func(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error)
+	DeleteFn           func(ctx context.Context, objectID string) error
+	ReplaceQuestionsFn func(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error
 }
 
 func (m *MockMongoAssessmentRepository) GetByMaterialID(ctx context.Context, materialID string) (*mongoentities.MaterialAssessment, error) {
@@ -252,6 +296,34 @@ func (m *MockMongoAssessmentRepository) GetByMaterialID(ctx context.Context, mat
 		return m.GetByMaterialIDFn(ctx, materialID)
 	}
 	return nil, nil
+}
+
+func (m *MockMongoAssessmentRepository) GetByObjectID(ctx context.Context, objectID string) (*mongoentities.MaterialAssessment, error) {
+	if m.GetByObjectIDFn != nil {
+		return m.GetByObjectIDFn(ctx, objectID)
+	}
+	return nil, nil
+}
+
+func (m *MockMongoAssessmentRepository) Create(ctx context.Context, doc *mongoentities.MaterialAssessment) (string, error) {
+	if m.CreateFn != nil {
+		return m.CreateFn(ctx, doc)
+	}
+	return "000000000000000000000000", nil
+}
+
+func (m *MockMongoAssessmentRepository) Delete(ctx context.Context, objectID string) error {
+	if m.DeleteFn != nil {
+		return m.DeleteFn(ctx, objectID)
+	}
+	return nil
+}
+
+func (m *MockMongoAssessmentRepository) ReplaceQuestions(ctx context.Context, objectID string, questions []mongoentities.Question, totalPoints int) error {
+	if m.ReplaceQuestionsFn != nil {
+		return m.ReplaceQuestionsFn(ctx, objectID, questions, totalPoints)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------

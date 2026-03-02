@@ -25,7 +25,7 @@ type OptionResponse struct {
 // AssessmentResponse is the assessment payload returned to students.
 type AssessmentResponse struct {
 	ID             uuid.UUID          `json:"id"`
-	MaterialID     uuid.UUID          `json:"material_id"`
+	MaterialID     *uuid.UUID         `json:"material_id,omitempty"`
 	Title          *string            `json:"title,omitempty"`
 	QuestionsCount int                `json:"questions_count"`
 	PassThreshold  *int               `json:"pass_threshold,omitempty"`
