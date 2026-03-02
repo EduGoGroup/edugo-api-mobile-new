@@ -5,20 +5,20 @@ go 1.25.5
 require (
 	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.57.0
-	github.com/EduGoGroup/edugo-shared/auth v0.51.0
-	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.1
+	github.com/EduGoGroup/edugo-shared/auth v0.51.1
+	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2
 	github.com/EduGoGroup/edugo-shared/common v0.51.0
 	github.com/EduGoGroup/edugo-shared/logger v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3
-	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.1
-	github.com/EduGoGroup/edugo-shared/repository v0.3.0
+	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.2
+	github.com/EduGoGroup/edugo-shared/repository v0.3.1
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.1
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.2
 	github.com/caarlos0/env/v11 v11.4.0
-	github.com/gin-gonic/gin v1.11.0
+	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.11.2
 	github.com/prometheus/client_golang v1.23.2
@@ -41,14 +41,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.0.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.7 // indirect
-	github.com/aws/smithy-go v1.24.1 // indirect
+	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
@@ -93,7 +93,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
-	github.com/prometheus/procfs v0.20.0 // indirect
+	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
