@@ -45,6 +45,24 @@ func (r *GuardianRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgenti
 	return &rel, nil
 }
 
+// GetByIDAndSchool retrieves a guardian relation scoped to a school (via student membership).
+func (r *GuardianRepository) GetByIDAndSchool(ctx context.Context, id, schoolID uuid.UUID) (*pgentities.GuardianRelation, error) {
+	var rel pgentities.GuardianRelation
+	err := r.db.WithContext(ctx).
+		Table("academic.guardian_relations gr").
+		Select("gr.*").
+		Joins("JOIN academic.memberships m ON m.user_id = gr.student_id").
+		Where("gr.id = ? AND m.school_id = ?", id, schoolID).
+		First(&rel).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, sharedErrors.NewNotFoundError("guardian relation")
+		}
+		return nil, sharedErrors.NewDatabaseError("get guardian relation by school", err)
+	}
+	return &rel, nil
+}
+
 // FindByGuardianAndStudent finds an existing relation between guardian and student.
 func (r *GuardianRepository) FindByGuardianAndStudent(ctx context.Context, guardianID, studentID uuid.UUID) (*pgentities.GuardianRelation, error) {
 	var rel pgentities.GuardianRelation
@@ -100,7 +118,7 @@ func (r *GuardianRepository) ListActiveChildrenByGuardian(ctx context.Context, g
 // UpdateStatus updates the status of a guardian relation.
 func (r *GuardianRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
 	result := r.db.WithContext(ctx).
-		Table("academic.guardian_relations").
+		Model(&pgentities.GuardianRelation{}).
 		Where("id = ?", id).
 		Update("status", status)
 	if result.Error != nil {
@@ -138,7 +156,7 @@ func (r *GuardianRepository) GetChildProgress(ctx context.Context, childID uuid.
 		Table("content.progress").
 		Select("COUNT(*) as total_materials, "+
 			"COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed, "+
-			"COALESCE(AVG(percentage), 0) as completion_rate").
+			"COALESCE(COUNT(CASE WHEN status = 'completed' THEN 1 END)::float / NULLIF(COUNT(*), 0), 0) as completion_rate").
 		Where("user_id = ?", childID).
 		Scan(&result).Error
 	if err != nil {

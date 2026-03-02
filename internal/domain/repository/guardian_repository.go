@@ -35,6 +35,7 @@ type ChildProgressResult struct {
 type GuardianRepository interface {
 	Create(ctx context.Context, relation *pgentities.GuardianRelation) error
 	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.GuardianRelation, error)
+	GetByIDAndSchool(ctx context.Context, id, schoolID uuid.UUID) (*pgentities.GuardianRelation, error)
 	FindByGuardianAndStudent(ctx context.Context, guardianID, studentID uuid.UUID) (*pgentities.GuardianRelation, error)
 	ListPendingBySchool(ctx context.Context, schoolID uuid.UUID) ([]GuardianRelationJoined, error)
 	ListActiveChildrenByGuardian(ctx context.Context, guardianID uuid.UUID) ([]ChildJoined, error)

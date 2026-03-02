@@ -107,9 +107,9 @@ func (s *GuardianService) ListPendingRequests(ctx context.Context, schoolID uuid
 	return results, nil
 }
 
-// ApproveRequest approves a pending guardian relation.
-func (s *GuardianService) ApproveRequest(ctx context.Context, id uuid.UUID) error {
-	rel, err := s.repo.GetByID(ctx, id)
+// ApproveRequest approves a pending guardian relation scoped to a school.
+func (s *GuardianService) ApproveRequest(ctx context.Context, schoolID, id uuid.UUID) error {
+	rel, err := s.repo.GetByIDAndSchool(ctx, id, schoolID)
 	if err != nil {
 		return err
 	}
@@ -121,13 +121,13 @@ func (s *GuardianService) ApproveRequest(ctx context.Context, id uuid.UUID) erro
 		return err
 	}
 
-	s.log.Info("guardian relation approved", "id", id)
+	s.log.Info("guardian relation approved", "id", id, "school_id", schoolID)
 	return nil
 }
 
-// RejectRequest rejects a pending guardian relation.
-func (s *GuardianService) RejectRequest(ctx context.Context, id uuid.UUID) error {
-	rel, err := s.repo.GetByID(ctx, id)
+// RejectRequest rejects a pending guardian relation scoped to a school.
+func (s *GuardianService) RejectRequest(ctx context.Context, schoolID, id uuid.UUID) error {
+	rel, err := s.repo.GetByIDAndSchool(ctx, id, schoolID)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (s *GuardianService) RejectRequest(ctx context.Context, id uuid.UUID) error
 		return err
 	}
 
-	s.log.Info("guardian relation rejected", "id", id)
+	s.log.Info("guardian relation rejected", "id", id, "school_id", schoolID)
 	return nil
 }
 
@@ -216,7 +216,7 @@ func (s *GuardianService) GetMyStats(ctx context.Context, guardianID uuid.UUID) 
 		return stats, nil
 	}
 
-	var totalMaterials, totalCompleted int
+	var totalMaterials int
 	var totalScore, totalCompletion float64
 	var childrenWithProgress int
 
@@ -227,7 +227,6 @@ func (s *GuardianService) GetMyStats(ctx context.Context, guardianID uuid.UUID) 
 			continue
 		}
 		totalMaterials += progress.TotalMaterials
-		totalCompleted += progress.Completed
 		totalScore += progress.AvgScore
 		totalCompletion += progress.CompletionRate
 		childrenWithProgress++

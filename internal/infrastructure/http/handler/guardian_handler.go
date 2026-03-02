@@ -90,13 +90,19 @@ func (h *GuardianHandler) ListPendingRequests(c *gin.Context) {
 // @Security BearerAuth
 // @Router /guardian-relations/{id}/approve [post]
 func (h *GuardianHandler) ApproveRequest(c *gin.Context) {
+	schoolID, err := getSchoolID(c)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
 		middleware.HandleError(c, err)
 		return
 	}
 
-	if err := h.svc.ApproveRequest(c.Request.Context(), id); err != nil {
+	if err := h.svc.ApproveRequest(c.Request.Context(), schoolID, id); err != nil {
 		middleware.HandleError(c, err)
 		return
 	}
@@ -115,13 +121,19 @@ func (h *GuardianHandler) ApproveRequest(c *gin.Context) {
 // @Security BearerAuth
 // @Router /guardian-relations/{id}/reject [post]
 func (h *GuardianHandler) RejectRequest(c *gin.Context) {
+	schoolID, err := getSchoolID(c)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
 	id, err := parseUUIDParam(c, "id")
 	if err != nil {
 		middleware.HandleError(c, err)
 		return
 	}
 
-	if err := h.svc.RejectRequest(c.Request.Context(), id); err != nil {
+	if err := h.svc.RejectRequest(c.Request.Context(), schoolID, id); err != nil {
 		middleware.HandleError(c, err)
 		return
 	}
