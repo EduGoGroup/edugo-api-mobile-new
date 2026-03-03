@@ -4,15 +4,15 @@ go 1.25.5
 
 require (
 	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.57.0
-	github.com/EduGoGroup/edugo-shared/auth v0.51.1
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.58.0
+	github.com/EduGoGroup/edugo-shared/auth v0.52.0
 	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2
 	github.com/EduGoGroup/edugo-shared/common v0.51.0
 	github.com/EduGoGroup/edugo-shared/logger v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3
 	github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.2
-	github.com/EduGoGroup/edugo-shared/repository v0.3.1
+	github.com/EduGoGroup/edugo-shared/repository v0.3.2
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
