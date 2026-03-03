@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.8.0] - 2026-03-03
+
+### Tipo de Release: patch
+
+- chore(deps): bump edugo-shared/auth to v0.52.0 and repository to v0.3.2
+- chore(deps): bump edugo-infrastructure/postgres to v0.58.0
+
+---
+
 ## [0.7.0] - 2026-03-02
 
 ### Tipo de Release: patch
