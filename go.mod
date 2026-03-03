@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.57.0
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.58.0
 	github.com/EduGoGroup/edugo-shared/auth v0.51.1
 	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2
 	github.com/EduGoGroup/edugo-shared/common v0.51.0
