@@ -58,7 +58,7 @@ func TestManagementHandler_List(t *testing.T) {
 		{
 			name:    "200 - happy path",
 			setAuth: true,
-			query:   "?limit=10&offset=0",
+			query:   "?limit=10&page=1",
 			setupPG: func(m *mock.MockAssessmentRepository) {
 				m.ListFn = func(_ context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
 					title := "Test"

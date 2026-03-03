@@ -80,16 +80,16 @@ type ListMaterialsRequest struct {
 	SchoolID     *uuid.UUID `form:"school_id"`
 	AuthorID     *uuid.UUID `form:"author_id"`
 	Status       *string    `form:"status"`
+	Page         int        `form:"page,default=1"`
 	Limit        int        `form:"limit,default=20"`
-	Offset       int        `form:"offset,default=0"`
 	Search       string     `form:"search"`
 	SearchFields string     `form:"search_fields"`
 }
 
 // PaginatedResponse wraps a list with pagination metadata.
 type PaginatedResponse struct {
-	Data   interface{} `json:"data"`
-	Total  int         `json:"total"`
-	Limit  int         `json:"limit"`
-	Offset int         `json:"offset"`
+	Data  interface{} `json:"data"`
+	Total int         `json:"total"`
+	Page  int         `json:"page"`
+	Limit int         `json:"limit"`
 }

@@ -110,7 +110,7 @@ func TestMaterialHandler_List(t *testing.T) {
 	}{
 		{
 			name:  "happy path",
-			query: "?limit=10&offset=0",
+			query: "?limit=10&page=1",
 			setupRepo: func(m *mock.MockMaterialRepository) {
 				m.ListFn = func(_ context.Context, _ repository.MaterialFilter) ([]pgentities.Material, int, error) {
 					return []pgentities.Material{{ID: uuid.New(), Title: "M1", CreatedAt: time.Now(), UpdatedAt: time.Now()}}, 1, nil

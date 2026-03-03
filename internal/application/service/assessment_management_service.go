@@ -46,6 +46,11 @@ func (s *AssessmentManagementService) ListAssessments(ctx context.Context, schoo
 	if req.Limit > 100 {
 		req.Limit = 100
 	}
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	offset := (req.Page - 1) * req.Limit
 
 	var searchFields []string
 	if req.SearchFields != "" {
@@ -61,7 +66,7 @@ func (s *AssessmentManagementService) ListAssessments(ctx context.Context, schoo
 		SchoolID:     &schoolID,
 		Status:       req.Status,
 		Limit:        req.Limit,
-		Offset:       req.Offset,
+		Offset:       offset,
 		Search:       req.Search,
 		SearchFields: searchFields,
 	}
@@ -77,10 +82,10 @@ func (s *AssessmentManagementService) ListAssessments(ctx context.Context, schoo
 	}
 
 	return &dto.PaginatedResponse{
-		Data:   items,
-		Total:  total,
-		Limit:  filter.Limit,
-		Offset: filter.Offset,
+		Data:  items,
+		Total: total,
+		Page:  req.Page,
+		Limit: filter.Limit,
 	}, nil
 }
 
