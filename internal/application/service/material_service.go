@@ -161,13 +161,18 @@ func (s *MaterialService) Update(ctx context.Context, id uuid.UUID, req dto.Upda
 
 	// Audit: material updated
 	if s.auditLogger != nil {
-		_ = s.auditLogger.Log(ctx, audit.AuditEvent{
+		if err := s.auditLogger.Log(ctx, audit.AuditEvent{
 			Action:       "update",
 			ResourceType: "material",
 			ResourceID:   id.String(),
 			Severity:     audit.SeverityInfo,
 			Category:     audit.CategoryData,
-		})
+		}); err != nil {
+			s.log.Error("failed to persist audit log for material update",
+				"error", err,
+				"material_id", id,
+			)
+		}
 	}
 
 	return toMaterialResponse(material), nil

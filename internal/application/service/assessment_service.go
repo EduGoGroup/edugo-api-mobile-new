@@ -200,13 +200,20 @@ func (s *AssessmentService) CreateAttempt(
 
 	// Audit: assessment attempt taken
 	if s.auditLogger != nil {
-		_ = s.auditLogger.Log(ctx, audit.AuditEvent{
+		if err := s.auditLogger.Log(ctx, audit.AuditEvent{
 			Action:       "take",
 			ResourceType: "assessment",
 			ResourceID:   assessment.ID.String(),
 			Severity:     audit.SeverityInfo,
 			Category:     audit.CategoryData,
-		})
+		}); err != nil {
+			s.log.Error("failed to emit audit event for assessment attempt",
+				"error", err,
+				"assessment_id", assessment.ID,
+				"attempt_id", attemptID,
+				"student_id", studentID,
+			)
+		}
 	}
 
 	s.log.Info("attempt created",
