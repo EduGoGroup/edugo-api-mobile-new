@@ -512,17 +512,18 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 
 	tests := []struct {
 		name         string
+		page         int
 		limit        int
-		offset       int
 		setupAttempt func(m *mock.MockAttemptRepository)
 		wantErr      bool
 		wantTotal    int
 		wantLimit    int
+		wantPage     int
 	}{
 		{
-			name:   "happy path with defaults",
-			limit:  0,
-			offset: 0,
+			name:  "happy path with defaults",
+			page:  0,
+			limit: 0,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
 				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					assert.Equal(t, 20, limit)
@@ -533,11 +534,12 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			},
 			wantTotal: 1,
 			wantLimit: 20,
+			wantPage:  1,
 		},
 		{
-			name:   "limit capped at 100",
-			limit:  200,
-			offset: 0,
+			name:  "limit capped at 100",
+			page:  1,
+			limit: 200,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
 				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, limit, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					assert.Equal(t, 100, limit)
@@ -546,11 +548,12 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			},
 			wantTotal: 0,
 			wantLimit: 100,
+			wantPage:  1,
 		},
 		{
-			name:   "repository error",
-			limit:  10,
-			offset: 0,
+			name:  "repository error",
+			page:  1,
+			limit: 10,
 			setupAttempt: func(m *mock.MockAttemptRepository) {
 				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {
 					return nil, 0, errors.NewDatabaseError("list", nil)
@@ -568,7 +571,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			}
 
 			svc := newTestAssessmentService(nil, attemptRepo, nil)
-			resp, err := svc.ListAttemptsByUser(ctx, userID, tt.limit, tt.offset, sharedrepo.ListFilters{})
+			resp, err := svc.ListAttemptsByUser(ctx, userID, tt.page, tt.limit, sharedrepo.ListFilters{})
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -579,6 +582,7 @@ func TestAssessmentService_ListAttemptsByUser(t *testing.T) {
 			require.NotNil(t, resp)
 			assert.Equal(t, tt.wantTotal, resp.Total)
 			assert.Equal(t, tt.wantLimit, resp.Limit)
+			assert.Equal(t, tt.wantPage, resp.Page)
 		})
 	}
 }

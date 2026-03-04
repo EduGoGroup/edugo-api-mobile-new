@@ -348,18 +348,50 @@ func TestMgmt_ListAssessments(t *testing.T) {
 	ctx := context.Background()
 	schoolID := uuid.New()
 
-	assessRepo := &mock.MockAssessmentRepository{
-		ListFn: func(_ context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
-			assert.Equal(t, &schoolID, filter.SchoolID)
-			title := "Test"
-			return []pgentities.Assessment{
-				{ID: uuid.New(), Title: &title, Status: "draft"},
-			}, 1, nil
-		},
-	}
+	t.Run("happy path returns correct total", func(t *testing.T) {
+		assessRepo := &mock.MockAssessmentRepository{
+			ListFn: func(_ context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
+				assert.Equal(t, &schoolID, filter.SchoolID)
+				title := "Test"
+				return []pgentities.Assessment{
+					{ID: uuid.New(), Title: &title, Status: "draft"},
+				}, 1, nil
+			},
+		}
 
-	svc := newTestMgmtService(assessRepo, nil)
-	resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Limit: 20})
-	require.NoError(t, err)
-	assert.Equal(t, 1, resp.Total)
+		svc := newTestMgmtService(assessRepo, nil)
+		resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Limit: 20})
+		require.NoError(t, err)
+		assert.Equal(t, 1, resp.Total)
+	})
+
+	t.Run("page defaults to 1 when zero", func(t *testing.T) {
+		assessRepo := &mock.MockAssessmentRepository{
+			ListFn: func(_ context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
+				assert.Equal(t, 0, filter.Offset) // page 1 → offset 0
+				return nil, 0, nil
+			},
+		}
+
+		svc := newTestMgmtService(assessRepo, nil)
+		resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Page: 0, Limit: 20})
+		require.NoError(t, err)
+		assert.Equal(t, 1, resp.Page) // defaulted to 1
+	})
+
+	t.Run("page 2 produces correct offset", func(t *testing.T) {
+		const limit = 20
+		assessRepo := &mock.MockAssessmentRepository{
+			ListFn: func(_ context.Context, filter repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
+				assert.Equal(t, limit, filter.Limit)
+				assert.Equal(t, limit, filter.Offset) // (2-1)*20 = 20
+				return nil, 0, nil
+			},
+		}
+
+		svc := newTestMgmtService(assessRepo, nil)
+		resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Page: 2, Limit: limit})
+		require.NoError(t, err)
+		assert.Equal(t, 2, resp.Page)
+	})
 }

@@ -284,13 +284,18 @@ func (s *AssessmentService) GetAttemptResult(ctx context.Context, attemptID uuid
 }
 
 // ListAttemptsByUser returns a paginated list of attempts for a user.
-func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) (*dto.PaginatedResponse, error) {
+func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.UUID, page, limit int, filters sharedrepo.ListFilters) (*dto.PaginatedResponse, error) {
 	if limit <= 0 {
 		limit = 20
 	}
 	if limit > 100 {
 		limit = 100
 	}
+	if page <= 0 {
+		page = 1
+	}
+
+	offset := (page - 1) * limit
 
 	attempts, total, err := s.attemptRepo.ListByUserID(ctx, userID, limit, offset, filters)
 	if err != nil {
@@ -313,9 +318,9 @@ func (s *AssessmentService) ListAttemptsByUser(ctx context.Context, userID uuid.
 	}
 
 	return &dto.PaginatedResponse{
-		Data:   items,
-		Total:  total,
-		Limit:  limit,
-		Offset: offset,
+		Data:  items,
+		Total: total,
+		Page:  page,
+		Limit: limit,
 	}, nil
 }

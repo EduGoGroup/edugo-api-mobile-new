@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,9 +12,9 @@ import (
 
 // ErrorResponse is the standard error JSON response.
 type ErrorResponse struct {
-	Error   string `json:"error"`
-	Code    string `json:"code"`
-	Details string `json:"details,omitempty"`
+	Error   string            `json:"error"`
+	Code    string            `json:"code"`
+	Details map[string]string `json:"details,omitempty"`
 }
 
 // ErrorHandler is a middleware that recovers from panics and returns a JSON error.
@@ -38,9 +39,15 @@ func ErrorHandler(log logger.Logger) gin.HandlerFunc {
 func HandleError(c *gin.Context, err error) {
 	if appErr, ok := errors.GetAppError(err); ok {
 		resp := ErrorResponse{
-			Error:   appErr.Message,
-			Code:    string(appErr.Code),
-			Details: appErr.Details,
+			Error: appErr.Message,
+			Code:  string(appErr.Code),
+		}
+		if len(appErr.Fields) > 0 {
+			details := make(map[string]string, len(appErr.Fields))
+			for k, v := range appErr.Fields {
+				details[k] = fmt.Sprintf("%v", v)
+			}
+			resp.Details = details
 		}
 		c.JSON(appErr.StatusCode, resp)
 		return

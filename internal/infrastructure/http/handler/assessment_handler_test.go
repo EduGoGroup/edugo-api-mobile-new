@@ -307,7 +307,7 @@ func TestAssessmentHandler_ListUserAttempts(t *testing.T) {
 	}{
 		{
 			name:    "happy path",
-			query:   "?limit=10&offset=0",
+			query:   "?limit=10&page=1",
 			setAuth: true,
 			setupAtt: func(m *mock.MockAttemptRepository) {
 				m.ListByUserIDFn = func(_ context.Context, _ uuid.UUID, _, _ int, _ sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error) {

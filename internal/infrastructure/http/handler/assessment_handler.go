@@ -77,8 +77,8 @@ func (h *AssessmentHandler) CreateAttempt(c *gin.Context) {
 	}
 
 	var req dto.CreateAttemptRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -124,7 +124,7 @@ func (h *AssessmentHandler) GetAttemptResult(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param limit query int false "Limit results"
-// @Param offset query int false "Offset for pagination"
+// @Param page query int false "Page number (1-based)"
 // @Param search query string false "Search term (ILIKE)"
 // @Param search_fields query string false "Comma-separated fields to search"
 // @Success 200 {object} map[string]interface{}
@@ -139,16 +139,16 @@ func (h *AssessmentHandler) ListUserAttempts(c *gin.Context) {
 		return
 	}
 
+	page := 1
 	limit := 20
-	offset := 0
+	if v, exists := c.GetQuery("page"); exists {
+		if parsed, err := parseInt(v); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
 	if v, exists := c.GetQuery("limit"); exists {
 		if parsed, err := parseInt(v); err == nil {
 			limit = parsed
-		}
-	}
-	if v, exists := c.GetQuery("offset"); exists {
-		if parsed, err := parseInt(v); err == nil {
-			offset = parsed
 		}
 	}
 	var filters sharedrepo.ListFilters
@@ -159,7 +159,7 @@ func (h *AssessmentHandler) ListUserAttempts(c *gin.Context) {
 		}
 	}
 
-	result, err := h.svc.ListAttemptsByUser(c.Request.Context(), userID, limit, offset, filters)
+	result, err := h.svc.ListAttemptsByUser(c.Request.Context(), userID, page, limit, filters)
 	if err != nil {
 		middleware.HandleError(c, err)
 		return

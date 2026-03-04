@@ -10,8 +10,8 @@ github.com/EduGoGroup/edugo-shared/auth v0.52.0 h1:PAhXqFXs/+47YmgbFigv0zG7SkAlY
 github.com/EduGoGroup/edugo-shared/auth v0.52.0/go.mod h1:nsrPpHwlIXnRys4iq3FX/U3lnjoVPWVl9Iem12lR+3w=
 github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2 h1:6YNSOb2CPTRpPaLyETXbQ4PfuDXPB46mtPSgMWFfBxE=
 github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2/go.mod h1:Li6Z0igYLyrFOYLsvcFFpQWp6O/K5tZspAN/A6rJa74=
-github.com/EduGoGroup/edugo-shared/common v0.51.0 h1:SS0btWVrevCOhWri2XyHNweTXt64xxzqtxNWL1Lahyw=
-github.com/EduGoGroup/edugo-shared/common v0.51.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
+github.com/EduGoGroup/edugo-shared/common v0.52.0 h1:1bKVyiVbiVcjvfxM7t6VkkggZ+9qDnnlBEWyj7Lpk6E=
+github.com/EduGoGroup/edugo-shared/common v0.52.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
 github.com/EduGoGroup/edugo-shared/logger v0.50.1 h1:glii4TebN8g6XJQUdcg2ibR18PM5q6Uw/Gsl6PZbArw=
 github.com/EduGoGroup/edugo-shared/logger v0.50.1/go.mod h1:S4RAQUh0bq697MiQBh9rhrvf/hSt7PbRfr0wgtZy7is=
 github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1 h1:8bkiGmLPNy509HuDhMG0Q+VhMCgzn175mMtHj9Ge5jY=
