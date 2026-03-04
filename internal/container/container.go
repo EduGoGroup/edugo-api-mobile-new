@@ -11,6 +11,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"github.com/EduGoGroup/edugo-shared/audit"
+	auditpostgres "github.com/EduGoGroup/edugo-shared/audit/postgres"
 	rediscache "github.com/EduGoGroup/edugo-shared/cache/redis"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/messaging/rabbit"
@@ -40,9 +42,10 @@ type Handlers struct {
 
 // Container is the root dependency injection container.
 type Container struct {
-	Logger     logger.Logger
-	AuthClient *client.AuthClient
-	Handlers   *Handlers
+	Logger      logger.Logger
+	AuthClient  *client.AuthClient
+	AuditLogger audit.AuditLogger
+	Handlers    *Handlers
 
 	// Infrastructure handles stored for cleanup
 	db          *gorm.DB
@@ -168,9 +171,13 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 		mongoSummaryRepo = mongorepo.NewMongoSummaryRepository(mongoDB)
 	}
 
+	// --- Audit Logger ---
+	auditLogger := auditpostgres.NewPostgresAuditLogger(db, "mobile-api")
+	c.AuditLogger = auditLogger
+
 	// --- Application Services ---
-	materialSvc := service.NewMaterialService(materialRepo, s3Client, publisher, log, cfg.Messaging.RabbitMQ.Exchange)
-	assessmentSvc := service.NewAssessmentService(assessmentRepo, attemptRepo, mongoAssessmentRepo, log)
+	materialSvc := service.NewMaterialService(materialRepo, s3Client, publisher, log, cfg.Messaging.RabbitMQ.Exchange, auditLogger)
+	assessmentSvc := service.NewAssessmentService(assessmentRepo, attemptRepo, mongoAssessmentRepo, log, auditLogger)
 	assessmentMgmtSvc := service.NewAssessmentManagementService(assessmentRepo, mongoAssessmentRepo, log)
 	progressSvc := service.NewProgressService(progressRepo, log)
 	screenSvc := service.NewScreenService(screenRepo, iamClient, cacheSvc, log)

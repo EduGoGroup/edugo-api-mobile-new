@@ -30,7 +30,7 @@ func setupAssessmentHandler(
 	attemptRepo *mock.MockAttemptRepository,
 	mongoRepo *mock.MockMongoAssessmentRepository,
 ) (*AssessmentHandler, *gin.Engine) {
-	svc := service.NewAssessmentService(assessRepo, attemptRepo, mongoRepo, mock.MockLogger{})
+	svc := service.NewAssessmentService(assessRepo, attemptRepo, mongoRepo, mock.MockLogger{}, nil)
 	h := NewAssessmentHandler(svc)
 	r := gin.New()
 	return h, r

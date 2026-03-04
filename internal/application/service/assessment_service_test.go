@@ -24,7 +24,7 @@ func newTestAssessmentService(
 	attemptRepo *mock.MockAttemptRepository,
 	mongoRepo *mock.MockMongoAssessmentRepository,
 ) *AssessmentService {
-	return NewAssessmentService(assessRepo, attemptRepo, mongoRepo, mock.MockLogger{})
+	return NewAssessmentService(assessRepo, attemptRepo, mongoRepo, mock.MockLogger{}, nil)
 }
 
 func TestAssessmentService_GetAssessmentByMaterialID(t *testing.T) {

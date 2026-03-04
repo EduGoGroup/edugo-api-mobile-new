@@ -19,7 +19,7 @@ import (
 )
 
 func newTestMaterialService(repo *mock.MockMaterialRepository, pub *mock.MockPublisher) *MaterialService {
-	return NewMaterialService(repo, nil, pub, mock.MockLogger{}, "test-exchange")
+	return NewMaterialService(repo, nil, pub, mock.MockLogger{}, "test-exchange", nil)
 }
 
 func TestMaterialService_Create(t *testing.T) {
@@ -432,7 +432,7 @@ func TestMaterialService_GenerateUploadURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := &mock.MockMaterialRepository{}
-			svc := NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test")
+			svc := NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test", nil)
 
 			resp, err := svc.GenerateUploadURL(ctx, materialID)
 
@@ -501,7 +501,7 @@ func TestMaterialService_GenerateDownloadURL(t *testing.T) {
 				tt.setupRepo(repo)
 			}
 
-			svc := NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test")
+			svc := NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test", nil)
 			resp, err := svc.GenerateDownloadURL(ctx, materialID)
 
 			if tt.wantErr {
@@ -597,9 +597,9 @@ func TestMaterialService_NotifyUploadComplete(t *testing.T) {
 
 			var svc *MaterialService
 			if tt.setupPub != nil {
-				svc = NewMaterialService(repo, nil, pub, mock.MockLogger{}, "test-exchange")
+				svc = NewMaterialService(repo, nil, pub, mock.MockLogger{}, "test-exchange", nil)
 			} else {
-				svc = NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test-exchange")
+				svc = NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test-exchange", nil)
 			}
 
 			resp, err := svc.NotifyUploadComplete(ctx, materialID, tt.req)
