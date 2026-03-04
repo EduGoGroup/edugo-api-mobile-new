@@ -41,8 +41,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Offset for pagination",
-                        "name": "offset",
+                        "description": "Page number (1-based)",
+                        "name": "page",
                         "in": "query"
                     },
                     {
@@ -2383,8 +2383,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Offset for pagination",
-                        "name": "offset",
+                        "description": "Page number (1-based)",
+                        "name": "page",
                         "in": "query"
                     },
                     {

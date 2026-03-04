@@ -47,8 +47,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Offset for pagination",
-                        "name": "offset",
+                        "description": "Page number (1-based)",
+                        "name": "page",
                         "in": "query"
                     },
                     {
@@ -2389,8 +2389,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Offset for pagination",
-                        "name": "offset",
+                        "description": "Page number (1-based)",
+                        "name": "page",
                         "in": "query"
                     },
                     {
