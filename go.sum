@@ -12,6 +12,8 @@ github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2 h1:6YNSOb2CPTRpPaLyETXbQ4P
 github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2/go.mod h1:Li6Z0igYLyrFOYLsvcFFpQWp6O/K5tZspAN/A6rJa74=
 github.com/EduGoGroup/edugo-shared/common v0.52.0 h1:1bKVyiVbiVcjvfxM7t6VkkggZ+9qDnnlBEWyj7Lpk6E=
 github.com/EduGoGroup/edugo-shared/common v0.52.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
+github.com/EduGoGroup/edugo-shared/common v0.53.0 h1:YYtvBHTP3z/a6myz7t+OPBfbBKf/EDjqnFh1nVcjJyI=
+github.com/EduGoGroup/edugo-shared/common v0.53.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
 github.com/EduGoGroup/edugo-shared/logger v0.50.1 h1:glii4TebN8g6XJQUdcg2ibR18PM5q6Uw/Gsl6PZbArw=
 github.com/EduGoGroup/edugo-shared/logger v0.50.1/go.mod h1:S4RAQUh0bq697MiQBh9rhrvf/hSt7PbRfr0wgtZy7is=
 github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1 h1:8bkiGmLPNy509HuDhMG0Q+VhMCgzn175mMtHj9Ge5jY=
@@ -20,6 +22,8 @@ github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3 h1:O+2nhsYd21tw3QyMK
 github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3/go.mod h1:/dBkkzC8QCHiWJ1FWmmb5OWoq84hjDbC24gH4lVe72M=
 github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.2 h1:1vQ+lTltPVgKre7OHKEQHQFPqiAwW1qpks2+2dDRsqg=
 github.com/EduGoGroup/edugo-shared/middleware/gin v0.50.2/go.mod h1:pku80JS2VslW1qiSQ4MlWKZJtgMo13uKLKHei45z5BU=
+github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.0 h1:LDrpxwaq31wUAE5/zeHFDaitqfLu/ACqCQXXaEAhj+k=
+github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.0/go.mod h1:VvLXgcx1K/y/H1GZxAWMGZ8PAzd0J8dQ5+oRa1Jsymo=
 github.com/EduGoGroup/edugo-shared/repository v0.3.2 h1:skChE4IEapvawNJzMu2416wdUpt8nTVq5j6myzM938E=
 github.com/EduGoGroup/edugo-shared/repository v0.3.2/go.mod h1:jzPpzi0HG6JDQGWBAJosf5ali4QLlCjM7lCG0emdMD4=
 github.com/EduGoGroup/edugo-shared/testing v0.50.0 h1:n5drXtkyshMxDlpW33LLc55zLl9iVC/GvMsR/loM7YQ=
