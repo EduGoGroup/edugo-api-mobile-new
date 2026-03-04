@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/EduGoGroup/edugo-shared/audit"
+	auditpostgres "github.com/EduGoGroup/edugo-shared/audit/postgres"
 	rediscache "github.com/EduGoGroup/edugo-shared/cache/redis"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/messaging/rabbit"
@@ -171,7 +172,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	}
 
 	// --- Audit Logger ---
-	auditLogger := audit.NewPostgresAuditLogger(db, "mobile-api")
+	auditLogger := auditpostgres.NewPostgresAuditLogger(db, "mobile-api")
 	c.AuditLogger = auditLogger
 
 	// --- Application Services ---

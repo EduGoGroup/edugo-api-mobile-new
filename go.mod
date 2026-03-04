@@ -5,6 +5,8 @@ go 1.25.5
 require (
 	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.58.0
+	github.com/EduGoGroup/edugo-shared/audit v0.0.0-00010101000000-000000000000
+	github.com/EduGoGroup/edugo-shared/audit/postgres v0.0.0-00010101000000-000000000000
 	github.com/EduGoGroup/edugo-shared/auth v0.52.0
 	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2
 	github.com/EduGoGroup/edugo-shared/common v0.52.0
@@ -120,3 +122,7 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/EduGoGroup/edugo-shared/audit => ../edugo-shared/audit
+
+replace github.com/EduGoGroup/edugo-shared/audit/postgres => ../edugo-shared/audit/postgres
