@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/EduGoGroup/edugo-shared/audit"
 	"github.com/EduGoGroup/edugo-shared/common/errors"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/messaging/events"
@@ -21,11 +22,12 @@ import (
 
 // MaterialService handles material business logic.
 type MaterialService struct {
-	repo      repository.MaterialRepository
-	s3        *storage.S3Client
-	publisher rabbit.Publisher
-	log       logger.Logger
-	exchange  string
+	repo        repository.MaterialRepository
+	s3          *storage.S3Client
+	publisher   rabbit.Publisher
+	log         logger.Logger
+	exchange    string
+	auditLogger audit.AuditLogger
 }
 
 // NewMaterialService creates a new MaterialService.
@@ -35,13 +37,15 @@ func NewMaterialService(
 	publisher rabbit.Publisher,
 	log logger.Logger,
 	exchange string,
+	auditLogger audit.AuditLogger,
 ) *MaterialService {
 	return &MaterialService{
-		repo:      repo,
-		s3:        s3,
-		publisher: publisher,
-		log:       log,
-		exchange:  exchange,
+		repo:        repo,
+		s3:          s3,
+		publisher:   publisher,
+		log:         log,
+		exchange:    exchange,
+		auditLogger: auditLogger,
 	}
 }
 
@@ -153,6 +157,17 @@ func (s *MaterialService) Update(ctx context.Context, id uuid.UUID, req dto.Upda
 
 	if err := s.repo.Update(ctx, material); err != nil {
 		return nil, err
+	}
+
+	// Audit: material updated
+	if s.auditLogger != nil {
+		_ = s.auditLogger.Log(ctx, audit.AuditEvent{
+			Action:       "update",
+			ResourceType: "material",
+			ResourceID:   id.String(),
+			Severity:     audit.SeverityInfo,
+			Category:     audit.CategoryData,
+		})
 	}
 
 	return toMaterialResponse(material), nil

@@ -31,7 +31,7 @@ func init() {
 }
 
 func setupMaterialHandler(repo *mock.MockMaterialRepository) (*MaterialHandler, *gin.Engine) {
-	svc := service.NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test")
+	svc := service.NewMaterialService(repo, nil, nil, mock.MockLogger{}, "test", nil)
 	h := NewMaterialHandler(svc)
 	r := gin.New()
 	return h, r

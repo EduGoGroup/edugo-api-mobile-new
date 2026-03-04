@@ -36,6 +36,7 @@ func Setup(c *container.Container) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", c.Handlers.Health.Health) // also under basePath for Swagger
 	v1.Use(middleware.RemoteAuthMiddleware(c.AuthClient))
+	v1.Use(sharedmw.AuditMiddleware(c.AuditLogger))
 
 	// Materials
 	materials := v1.Group("/materials")
