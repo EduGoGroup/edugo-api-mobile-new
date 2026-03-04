@@ -298,9 +298,9 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Offset for pagination
+      - description: Page number (1-based)
         in: query
-        name: offset
+        name: page
         type: integer
       - description: Search term
         in: query
@@ -1839,9 +1839,9 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Offset for pagination
+      - description: Page number (1-based)
         in: query
-        name: offset
+        name: page
         type: integer
       - description: Search term (ILIKE)
         in: query
