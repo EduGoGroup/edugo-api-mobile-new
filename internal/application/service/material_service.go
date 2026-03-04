@@ -88,13 +88,18 @@ func (s *MaterialService) List(ctx context.Context, req dto.ListMaterialsRequest
 	if req.Limit > 100 {
 		req.Limit = 100
 	}
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	offset := (req.Page - 1) * req.Limit
 
 	filter := repository.MaterialFilter{
 		SchoolID: req.SchoolID,
 		AuthorID: req.AuthorID,
 		Status:   req.Status,
 		Limit:    req.Limit,
-		Offset:   req.Offset,
+		Offset:   offset,
 		Search:   req.Search,
 	}
 	if req.SearchFields != "" {
@@ -112,10 +117,10 @@ func (s *MaterialService) List(ctx context.Context, req dto.ListMaterialsRequest
 	}
 
 	return &dto.PaginatedResponse{
-		Data:   items,
-		Total:  total,
-		Limit:  req.Limit,
-		Offset: req.Offset,
+		Data:  items,
+		Total: total,
+		Page:  req.Page,
+		Limit: req.Limit,
 	}, nil
 }
 

@@ -28,7 +28,7 @@ func NewAssessmentManagementHandler(svc *service.AssessmentManagementService) *A
 // @Produce json
 // @Param status query string false "Filter by status"
 // @Param limit query int false "Limit results"
-// @Param offset query int false "Offset for pagination"
+// @Param page query int false "Page number (1-based)"
 // @Param search query string false "Search term"
 // @Success 200 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
@@ -98,8 +98,8 @@ func (h *AssessmentManagementHandler) GetByID(c *gin.Context) {
 // @Router /assessments [post]
 func (h *AssessmentManagementHandler) Create(c *gin.Context) {
 	var req dto.CreateAssessmentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -146,8 +146,8 @@ func (h *AssessmentManagementHandler) Update(c *gin.Context) {
 	}
 
 	var req dto.UpdateAssessmentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -298,8 +298,8 @@ func (h *AssessmentManagementHandler) AddQuestion(c *gin.Context) {
 	}
 
 	var req dto.CreateQuestionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -341,8 +341,8 @@ func (h *AssessmentManagementHandler) UpdateQuestion(c *gin.Context) {
 	}
 
 	var req dto.UpdateQuestionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 

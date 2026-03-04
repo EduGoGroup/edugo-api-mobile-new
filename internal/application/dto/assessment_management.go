@@ -42,8 +42,8 @@ type AssessmentManagementResponse struct {
 // ListAssessmentsRequest holds query parameters for listing assessments.
 type ListAssessmentsRequest struct {
 	Status       *string `form:"status"`
+	Page         int     `form:"page,default=1"`
 	Limit        int     `form:"limit,default=20"`
-	Offset       int     `form:"offset,default=0"`
 	Search       string  `form:"search"`
 	SearchFields string  `form:"search_fields"`
 }

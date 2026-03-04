@@ -40,8 +40,8 @@ func (h *ProgressHandler) Upsert(c *gin.Context) {
 	}
 
 	var req dto.UpsertProgressRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 

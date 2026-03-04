@@ -120,8 +120,8 @@ func (h *MaterialHandler) GetWithVersions(c *gin.Context) {
 // @Router /materials [post]
 func (h *MaterialHandler) Create(c *gin.Context) {
 	var req dto.CreateMaterialRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -167,8 +167,8 @@ func (h *MaterialHandler) Update(c *gin.Context) {
 	}
 
 	var req dto.UpdateMaterialRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 
@@ -228,8 +228,8 @@ func (h *MaterialHandler) UploadComplete(c *gin.Context) {
 	}
 
 	var req dto.UploadCompleteRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": "VALIDATION_ERROR"})
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
 		return
 	}
 

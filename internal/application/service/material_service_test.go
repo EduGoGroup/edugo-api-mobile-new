@@ -175,18 +175,49 @@ func TestMaterialService_List(t *testing.T) {
 		wantErr   bool
 		wantTotal int
 		wantLimit int
+		wantPage  int
 	}{
 		{
 			name: "happy path with defaults",
 			req:  dto.ListMaterialsRequest{SchoolID: &schoolID},
 			setupRepo: func(m *mock.MockMaterialRepository) {
 				m.ListFn = func(_ context.Context, f repository.MaterialFilter) ([]pgentities.Material, int, error) {
-					assert.Equal(t, 20, f.Limit) // default
+					assert.Equal(t, 20, f.Limit)  // default limit
+					assert.Equal(t, 0, f.Offset)  // page 1 → offset 0
 					return []pgentities.Material{{ID: uuid.New(), Title: "M1"}}, 1, nil
 				}
 			},
 			wantTotal: 1,
 			wantLimit: 20,
+			wantPage:  1,
+		},
+		{
+			name: "page defaults to 1 when zero",
+			req:  dto.ListMaterialsRequest{SchoolID: &schoolID, Page: 0, Limit: 10},
+			setupRepo: func(m *mock.MockMaterialRepository) {
+				m.ListFn = func(_ context.Context, f repository.MaterialFilter) ([]pgentities.Material, int, error) {
+					assert.Equal(t, 10, f.Limit)
+					assert.Equal(t, 0, f.Offset) // page 1 → offset 0
+					return []pgentities.Material{{ID: uuid.New(), Title: "M1"}}, 1, nil
+				}
+			},
+			wantTotal: 1,
+			wantLimit: 10,
+			wantPage:  1,
+		},
+		{
+			name: "page 2 produces correct offset",
+			req:  dto.ListMaterialsRequest{SchoolID: &schoolID, Page: 2, Limit: 10},
+			setupRepo: func(m *mock.MockMaterialRepository) {
+				m.ListFn = func(_ context.Context, f repository.MaterialFilter) ([]pgentities.Material, int, error) {
+					assert.Equal(t, 10, f.Limit)
+					assert.Equal(t, 10, f.Offset) // (2-1)*10 = 10
+					return []pgentities.Material{{ID: uuid.New(), Title: "M2"}}, 15, nil
+				}
+			},
+			wantTotal: 15,
+			wantLimit: 10,
+			wantPage:  2,
 		},
 		{
 			name: "limit capped at 100",
@@ -199,6 +230,7 @@ func TestMaterialService_List(t *testing.T) {
 			},
 			wantTotal: 0,
 			wantLimit: 100,
+			wantPage:  1,
 		},
 		{
 			name: "repository error",
@@ -231,6 +263,7 @@ func TestMaterialService_List(t *testing.T) {
 			require.NotNil(t, resp)
 			assert.Equal(t, tt.wantTotal, resp.Total)
 			assert.Equal(t, tt.wantLimit, resp.Limit)
+			assert.Equal(t, tt.wantPage, resp.Page)
 		})
 	}
 }
