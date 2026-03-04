@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/EduGoGroup/edugo-shared/audit"
 	"github.com/EduGoGroup/edugo-shared/common/errors"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
@@ -24,6 +25,7 @@ type AssessmentService struct {
 	attemptRepo         repository.AttemptRepository
 	mongoAssessmentRepo repository.MongoAssessmentRepository
 	log                 logger.Logger
+	auditLogger         audit.AuditLogger
 }
 
 // NewAssessmentService creates a new AssessmentService.
@@ -32,12 +34,14 @@ func NewAssessmentService(
 	attemptRepo repository.AttemptRepository,
 	mongoAssessmentRepo repository.MongoAssessmentRepository,
 	log logger.Logger,
+	auditLogger audit.AuditLogger,
 ) *AssessmentService {
 	return &AssessmentService{
 		assessmentRepo:      assessmentRepo,
 		attemptRepo:         attemptRepo,
 		mongoAssessmentRepo: mongoAssessmentRepo,
 		log:                 log,
+		auditLogger:         auditLogger,
 	}
 }
 
@@ -192,6 +196,24 @@ func (s *AssessmentService) CreateAttempt(
 
 	if err := s.attemptRepo.Create(ctx, attempt, answers); err != nil {
 		return nil, err
+	}
+
+	// Audit: assessment attempt taken
+	if s.auditLogger != nil {
+		if err := s.auditLogger.Log(ctx, audit.AuditEvent{
+			Action:       "take",
+			ResourceType: "assessment",
+			ResourceID:   assessment.ID.String(),
+			Severity:     audit.SeverityInfo,
+			Category:     audit.CategoryData,
+		}); err != nil {
+			s.log.Error("failed to emit audit event for assessment attempt",
+				"error", err,
+				"assessment_id", assessment.ID,
+				"attempt_id", attemptID,
+				"student_id", studentID,
+			)
+		}
 	}
 
 	s.log.Info("attempt created",
