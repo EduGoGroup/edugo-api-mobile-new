@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.9.0] - 2026-03-04
+
+### Tipo de Release: patch
+
+- chore(deps): bump shared/common to v0.52.0
+- fix(pagination): address code review comments from PR #16
+- feat(pagination): implement real pagination with COUNT for mobile endpoints
+- perf(docker): eliminate Go compilation from Docker, reduce image time ~80%
+
+---
+
 ## [0.8.0] - 2026-03-03
 
 ### Tipo de Release: patch
