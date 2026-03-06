@@ -119,9 +119,9 @@ func Setup(c *container.Container) *gin.Engine {
 	// Guardians (my children + stats)
 	guardians := v1.Group("/guardians")
 	{
-		guardians.GET("/me/children", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.ListMyChildren)
-		guardians.GET("/me/children/:childId/progress", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.GetChildProgress)
-		guardians.GET("/me/stats", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRequest), c.Handlers.Guardian.GetMyStats)
+		guardians.GET("/me/children", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRead), c.Handlers.Guardian.ListMyChildren)
+		guardians.GET("/me/children/:childId/progress", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRead), c.Handlers.Guardian.GetChildProgress)
+		guardians.GET("/me/stats", sharedmw.RequirePermission(enum.PermissionGuardianRelationsRead), c.Handlers.Guardian.GetMyStats)
 	}
 
 	return r
