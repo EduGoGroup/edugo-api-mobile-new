@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.10.0] - 2026-03-06
+
+### Tipo de Release: patch
+
+- update (#21)
+- feat(mobile-api): AuditMiddleware + explicit audit logging (#18) (#19)
+- skill and swagger
+
+---
+
 ## [0.9.0] - 2026-03-04
 
 ### Tipo de Release: patch
