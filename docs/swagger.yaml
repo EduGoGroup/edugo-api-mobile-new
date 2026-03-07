@@ -37,18 +37,32 @@ definitions:
     type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.CreateAssessmentRequest:
     properties:
-      material_id:
+      available_from:
         type: string
+      available_until:
+        type: string
+      description:
+        type: string
+      is_timed:
+        type: boolean
+      material_ids:
+        items:
+          type: string
+        type: array
       max_attempts:
         minimum: 1
-        type: integer
+        type: number
       pass_threshold:
         maximum: 100
         minimum: 0
-        type: integer
+        type: number
+      show_correct_answers:
+        type: boolean
+      shuffle_questions:
+        type: boolean
       time_limit_minutes:
         minimum: 1
-        type: integer
+        type: number
       title:
         type: string
     required:
@@ -189,16 +203,32 @@ definitions:
     type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateAssessmentRequest:
     properties:
+      available_from:
+        type: string
+      available_until:
+        type: string
+      description:
+        type: string
+      is_timed:
+        type: boolean
+      material_ids:
+        items:
+          type: string
+        type: array
       max_attempts:
         minimum: 1
-        type: integer
+        type: number
       pass_threshold:
         maximum: 100
         minimum: 0
-        type: integer
+        type: number
+      show_correct_answers:
+        type: boolean
+      shuffle_questions:
+        type: boolean
       time_limit_minutes:
         minimum: 1
-        type: integer
+        type: number
       title:
         type: string
     type: object
