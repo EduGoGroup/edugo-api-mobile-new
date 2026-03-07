@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
 	"github.com/google/uuid"
@@ -374,21 +373,9 @@ func (s *AssessmentService) StartAttempt(ctx context.Context, assessmentID, stud
 		return nil, errors.NewBusinessRuleError("assessment is no longer available")
 	}
 
-	// Check max attempts
-	var remainingAttempts *int
-	if assessment.MaxAttempts != nil {
-		count, cErr := s.attemptRepo.CountByAssessmentAndStudent(ctx, assessment.ID, studentID)
-		if cErr != nil {
-			return nil, cErr
-		}
-		if count >= *assessment.MaxAttempts {
-			return nil, errors.NewBusinessRuleError("maximum number of attempts reached")
-		}
-		rem := *assessment.MaxAttempts - count
-		remainingAttempts = &rem
-	}
-
-	// Check for existing in-progress attempt
+	// Check for existing in-progress attempt FIRST. If one exists, return it
+	// without checking MaxAttempts. Otherwise MaxAttempts=1 with an in-progress
+	// attempt would return an error instead of the existing attempt.
 	existing, err := s.attemptRepo.GetInProgressByStudentAndAssessment(ctx, studentID, assessment.ID)
 	if err != nil {
 		return nil, err
@@ -405,14 +392,30 @@ func (s *AssessmentService) StartAttempt(ctx context.Context, assessmentID, stud
 
 	questions := s.sanitizeQuestions(mongoDoc)
 
-	if assessment.ShuffleQuestions {
-		rand.Shuffle(len(questions), func(i, j int) {
-			questions[i], questions[j] = questions[j], questions[i]
-		})
-	}
+	// TODO: ShuffleQuestions is disabled because the shuffled order is not persisted
+	// in the attempt. Since answers are graded by questionIndex against the MongoDB
+	// document order, shuffling here would cause grading mismatches when the student
+	// submits answers. To properly support shuffling, we need to persist the shuffled
+	// question order in the attempt record and use it during grading.
+	// See: https://github.com/EduGoGroup/edugo-api-mobile-new/pull/23
+	// if assessment.ShuffleQuestions {
+	// 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// 	rng.Shuffle(len(questions), func(i, j int) {
+	// 		questions[i], questions[j] = questions[j], questions[i]
+	// 	})
+	// }
 
+	var remainingAttempts *int
 	if existing != nil {
-		// Adjust remaining attempts (don't count the in-progress one as consumed for the response)
+		// Compute remaining attempts for the response
+		if assessment.MaxAttempts != nil {
+			count, cErr := s.attemptRepo.CountByAssessmentAndStudent(ctx, assessment.ID, studentID)
+			if cErr != nil {
+				return nil, cErr
+			}
+			rem := *assessment.MaxAttempts - count
+			remainingAttempts = &rem
+		}
 		return &dto.StartAttemptResponse{
 			AttemptID:         existing.ID,
 			AssessmentID:      existing.AssessmentID,
@@ -427,6 +430,19 @@ func (s *AssessmentService) StartAttempt(ctx context.Context, assessmentID, stud
 			Questions:         questions,
 			StartedAt:         existing.StartedAt,
 		}, nil
+	}
+
+	// Check max attempts only when creating a new attempt
+	if assessment.MaxAttempts != nil {
+		count, cErr := s.attemptRepo.CountByAssessmentAndStudent(ctx, assessment.ID, studentID)
+		if cErr != nil {
+			return nil, cErr
+		}
+		if count >= *assessment.MaxAttempts {
+			return nil, errors.NewBusinessRuleError("maximum number of attempts reached")
+		}
+		rem := *assessment.MaxAttempts - count
+		remainingAttempts = &rem
 	}
 
 	attemptID := uuid.New()
@@ -492,6 +508,22 @@ func (s *AssessmentService) SaveAnswer(ctx context.Context, attemptID uuid.UUID,
 		return nil, err
 	}
 
+	// Validate questionIndex against the assessment's questions
+	assessment, err := s.assessmentRepo.GetByID(ctx, attempt.AssessmentID)
+	if err != nil {
+		return nil, err
+	}
+	if assessment.MongoDocumentID == "" {
+		return nil, errors.NewInternalError("assessment has no questions document", nil)
+	}
+	mongoDoc, err := s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
+	if err != nil {
+		return nil, errors.NewInternalError("failed to retrieve questions", err)
+	}
+	if questionIndex < 0 || questionIndex >= len(mongoDoc.Questions) {
+		return nil, errors.NewValidationError("invalid question_index")
+	}
+
 	now := time.Now()
 	answer := &pgentities.AssessmentAttemptAnswer{
 		ID:               uuid.New(),
@@ -530,6 +562,32 @@ func (s *AssessmentService) SubmitAttempt(ctx context.Context, attemptID, studen
 		return nil, errors.NewBusinessRuleError("attempt is not in progress")
 	}
 
+	// Check time limit before saving/grading
+	if err := s.checkTimeLimit(ctx, attempt); err != nil {
+		return nil, err
+	}
+
+	// Load assessment for MongoDB reference (needed for validation and grading)
+	assessment, err := s.assessmentRepo.GetByID(ctx, attempt.AssessmentID)
+	if err != nil {
+		return nil, err
+	}
+
+	if assessment.MongoDocumentID == "" {
+		return nil, errors.NewInternalError("assessment has no questions document", nil)
+	}
+	mongoDoc, err := s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
+	if err != nil {
+		return nil, errors.NewInternalError("failed to retrieve questions for grading", err)
+	}
+
+	// Validate QuestionIndex in submitted answers before persisting
+	for _, ans := range req.Answers {
+		if ans.QuestionIndex < 0 || ans.QuestionIndex >= len(mongoDoc.Questions) {
+			return nil, errors.NewValidationError("invalid question_index in submitted answers")
+		}
+	}
+
 	now := time.Now()
 
 	// Save any remaining answers from the request body
@@ -554,20 +612,6 @@ func (s *AssessmentService) SubmitAttempt(ctx context.Context, attemptID, studen
 	pgAnswers, err := s.attemptRepo.GetAnswersByAttemptID(ctx, attemptID)
 	if err != nil {
 		return nil, err
-	}
-
-	// Load assessment for MongoDB reference
-	assessment, err := s.assessmentRepo.GetByID(ctx, attempt.AssessmentID)
-	if err != nil {
-		return nil, err
-	}
-
-	if assessment.MongoDocumentID == "" {
-		return nil, errors.NewInternalError("assessment has no questions document", nil)
-	}
-	mongoDoc, err := s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
-	if err != nil {
-		return nil, errors.NewInternalError("failed to retrieve questions for grading", err)
 	}
 
 	// Grade each answer

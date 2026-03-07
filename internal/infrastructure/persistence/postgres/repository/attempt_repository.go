@@ -112,7 +112,7 @@ func (r *AttemptRepository) GetInProgressByStudentAndAssessment(ctx context.Cont
 
 // UpsertAnswer inserts or updates an answer keyed by attempt_id + question_index.
 func (r *AttemptRepository) UpsertAnswer(ctx context.Context, answer *pgentities.AssessmentAttemptAnswer) error {
-	return r.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Where("attempt_id = ? AND question_index = ?", answer.AttemptID, answer.QuestionIndex).
 		Assign(pgentities.AssessmentAttemptAnswer{
 			StudentAnswer:    answer.StudentAnswer,
@@ -120,7 +120,10 @@ func (r *AttemptRepository) UpsertAnswer(ctx context.Context, answer *pgentities
 			AnsweredAt:       answer.AnsweredAt,
 			UpdatedAt:        answer.UpdatedAt,
 		}).
-		FirstOrCreate(answer).Error
+		FirstOrCreate(answer).Error; err != nil {
+		return sharedErrors.NewDatabaseError("upsert answer", err)
+	}
+	return nil
 }
 
 // UpdateAttempt updates an existing attempt.

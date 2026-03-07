@@ -300,8 +300,13 @@ func (h *AssessmentHandler) SubmitAttempt(c *gin.Context) {
 	}
 
 	var req dto.SubmitAttemptRequest
-	// Body is optional, ignore bind errors for empty body
-	_ = c.ShouldBindJSON(&req)
+	// Body is optional — ignore EOF/empty-body but return validation errors
+	if err := c.ShouldBindJSON(&req); err != nil {
+		if err.Error() != "EOF" && err.Error() != "unexpected end of JSON input" {
+			middleware.HandleError(c, sharedErrors.NewValidationError("invalid request body: "+err.Error()))
+			return
+		}
+	}
 
 	result, err := h.svc.SubmitAttempt(c.Request.Context(), attemptID, userID, req)
 	if err != nil {
