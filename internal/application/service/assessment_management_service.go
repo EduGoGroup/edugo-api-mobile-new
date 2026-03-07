@@ -173,19 +173,19 @@ func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req 
 	description := req.Description
 
 	assessment := &pgentities.Assessment{
-		ID:              uuid.New(),
-		MongoDocumentID: mongoID,
-		SchoolID:        &schoolID,
-		CreatedByUserID: &userID,
-		QuestionsCount:  0,
-		Title:           &title,
-		Description:     &description,
-		PassThreshold:   &passThreshold,
-		MaxAttempts:     dto.ToInt(req.MaxAttempts),
+		ID:               uuid.New(),
+		MongoDocumentID:  mongoID,
+		SchoolID:         &schoolID,
+		CreatedByUserID:  &userID,
+		QuestionsCount:   0,
+		Title:            &title,
+		Description:      &description,
+		PassThreshold:    &passThreshold,
+		MaxAttempts:      dto.ToInt(req.MaxAttempts),
 		TimeLimitMinutes: req.TimeLimitMinutes,
-		Status:          "draft",
-		CreatedAt:       now,
-		UpdatedAt:       now,
+		Status:           "draft",
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 
 	// Set boolean fields from request
@@ -216,6 +216,11 @@ func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req 
 	// Insert assessment_materials if provided
 	materialIDs, parseErr := parseMaterialIDs(req.MaterialIDs)
 	if parseErr != nil {
+		// Compensating: delete assessment and MongoDB doc on parse failure
+		s.log.Error("failed to parse material IDs, rolling back",
+			"error", parseErr, "assessment_id", assessment.ID)
+		_ = s.assessmentRepo.SoftDelete(ctx, assessment.ID)
+		_ = s.mongoAssessmentRepo.Delete(ctx, mongoID)
 		return nil, parseErr
 	}
 	if len(materialIDs) > 0 {
@@ -288,17 +293,23 @@ func (s *AssessmentManagementService) UpdateAssessment(ctx context.Context, id u
 		assessment.AvailableUntil = req.AvailableUntil
 	}
 
+	// Validate material IDs before persisting any changes
+	var parsedMaterialIDs []uuid.UUID
+	if req.MaterialIDs != nil {
+		var parseErr error
+		parsedMaterialIDs, parseErr = parseMaterialIDs(req.MaterialIDs)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+	}
+
 	if err := s.assessmentRepo.Update(ctx, assessment); err != nil {
 		return nil, err
 	}
 
-	// Replace assessment_materials if provided
+	// Replace assessment_materials if provided (already validated above)
 	if req.MaterialIDs != nil {
-		materialIDs, parseErr := parseMaterialIDs(req.MaterialIDs)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		if err := s.assessmentMaterialRepo.ReplaceForAssessment(ctx, id, materialIDs); err != nil {
+		if err := s.assessmentMaterialRepo.ReplaceForAssessment(ctx, id, parsedMaterialIDs); err != nil {
 			return nil, errors.NewInternalError("failed to update assessment materials", err)
 		}
 

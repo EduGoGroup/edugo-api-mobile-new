@@ -25,6 +25,14 @@ func newTestMgmtService(
 	return NewAssessmentManagementService(assessRepo, &mock.MockAssessmentMaterialRepository{}, mongoRepo, mock.MockLogger{})
 }
 
+func newTestMgmtServiceWithMaterials(
+	assessRepo *mock.MockAssessmentRepository,
+	matRepo *mock.MockAssessmentMaterialRepository,
+	mongoRepo *mock.MockMongoAssessmentRepository,
+) *AssessmentManagementService {
+	return NewAssessmentManagementService(assessRepo, matRepo, mongoRepo, mock.MockLogger{})
+}
+
 func TestMgmt_CreateAssessment(t *testing.T) {
 	ctx := context.Background()
 	schoolID := uuid.New()
@@ -392,5 +400,231 @@ func TestMgmt_ListAssessments(t *testing.T) {
 		resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Page: 2, Limit: limit})
 		require.NoError(t, err)
 		assert.Equal(t, 2, resp.Page)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// N:N Material tests
+// ---------------------------------------------------------------------------
+
+func TestMgmt_CreateAssessment_WithMaterialIDs(t *testing.T) {
+	ctx := context.Background()
+	schoolID := uuid.New()
+	userID := uuid.New()
+	matID1 := uuid.New()
+	matID2 := uuid.New()
+
+	t.Run("creates assessment with material associations", func(t *testing.T) {
+		var replacedIDs []uuid.UUID
+		assessRepo := &mock.MockAssessmentRepository{
+			CreateFn: func(_ context.Context, a *pgentities.Assessment) error {
+				return nil
+			},
+		}
+		matRepo := &mock.MockAssessmentMaterialRepository{
+			ReplaceForAssessmentFn: func(_ context.Context, _ uuid.UUID, materialIDs []uuid.UUID) error {
+				replacedIDs = materialIDs
+				return nil
+			},
+			GetByAssessmentFn: func(_ context.Context, _ uuid.UUID) ([]pgentities.AssessmentMaterial, error) {
+				return []pgentities.AssessmentMaterial{
+					{MaterialID: matID1},
+					{MaterialID: matID2},
+				}, nil
+			},
+			GetMaterialTitlesFn: func(_ context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {
+				return map[uuid.UUID]string{
+					matID1: "Material 1",
+					matID2: "Material 2",
+				}, nil
+			},
+		}
+		mongoRepo := &mock.MockMongoAssessmentRepository{
+			CreateFn: func(_ context.Context, _ *mongoentities.MaterialAssessment) (string, error) {
+				return "aabbccddee0011223344ff00", nil
+			},
+		}
+
+		svc := newTestMgmtServiceWithMaterials(assessRepo, matRepo, mongoRepo)
+		resp, err := svc.CreateAssessment(ctx, dto.CreateAssessmentRequest{
+			Title:       "With Materials",
+			MaterialIDs: []string{matID1.String(), matID2.String()},
+		}, schoolID, userID)
+
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.Len(t, replacedIDs, 2)
+		assert.Len(t, resp.MaterialIDs, 2)
+		assert.Len(t, resp.Materials, 2)
+		assert.Equal(t, "Material 1", resp.Materials[0].Title)
+	})
+
+	t.Run("invalid material_id triggers compensating rollback", func(t *testing.T) {
+		softDeleted := false
+		mongoDeleted := false
+
+		assessRepo := &mock.MockAssessmentRepository{
+			CreateFn: func(_ context.Context, _ *pgentities.Assessment) error {
+				return nil
+			},
+			SoftDeleteFn: func(_ context.Context, _ uuid.UUID) error {
+				softDeleted = true
+				return nil
+			},
+		}
+		mongoRepo := &mock.MockMongoAssessmentRepository{
+			CreateFn: func(_ context.Context, _ *mongoentities.MaterialAssessment) (string, error) {
+				return "aabbccddee0011223344ff00", nil
+			},
+			DeleteFn: func(_ context.Context, _ string) error {
+				mongoDeleted = true
+				return nil
+			},
+		}
+
+		svc := newTestMgmtService(assessRepo, mongoRepo)
+		_, err := svc.CreateAssessment(ctx, dto.CreateAssessmentRequest{
+			Title:       "Bad Material",
+			MaterialIDs: []string{"not-a-uuid"},
+		}, schoolID, userID)
+
+		require.Error(t, err)
+		assert.True(t, softDeleted, "PG assessment should be soft-deleted on parse failure")
+		assert.True(t, mongoDeleted, "MongoDB doc should be deleted on parse failure")
+	})
+
+	t.Run("ReplaceForAssessment failure triggers compensating rollback", func(t *testing.T) {
+		softDeleted := false
+		mongoDeleted := false
+
+		assessRepo := &mock.MockAssessmentRepository{
+			CreateFn: func(_ context.Context, _ *pgentities.Assessment) error {
+				return nil
+			},
+			SoftDeleteFn: func(_ context.Context, _ uuid.UUID) error {
+				softDeleted = true
+				return nil
+			},
+		}
+		matRepo := &mock.MockAssessmentMaterialRepository{
+			ReplaceForAssessmentFn: func(_ context.Context, _ uuid.UUID, _ []uuid.UUID) error {
+				return errors.NewDatabaseError("junction insert failed", nil)
+			},
+		}
+		mongoRepo := &mock.MockMongoAssessmentRepository{
+			CreateFn: func(_ context.Context, _ *mongoentities.MaterialAssessment) (string, error) {
+				return "aabbccddee0011223344ff00", nil
+			},
+			DeleteFn: func(_ context.Context, _ string) error {
+				mongoDeleted = true
+				return nil
+			},
+		}
+
+		svc := newTestMgmtServiceWithMaterials(assessRepo, matRepo, mongoRepo)
+		_, err := svc.CreateAssessment(ctx, dto.CreateAssessmentRequest{
+			Title:       "Replace Fails",
+			MaterialIDs: []string{matID1.String()},
+		}, schoolID, userID)
+
+		require.Error(t, err)
+		assert.True(t, softDeleted, "PG assessment should be soft-deleted on material replace failure")
+		assert.True(t, mongoDeleted, "MongoDB doc should be deleted on material replace failure")
+	})
+}
+
+func TestMgmt_UpdateAssessment_WithMaterialIDs(t *testing.T) {
+	ctx := context.Background()
+	assessmentID := uuid.New()
+	matID := uuid.New()
+
+	t.Run("updates material associations", func(t *testing.T) {
+		title := "Original"
+		var replacedIDs []uuid.UUID
+		assessRepo := &mock.MockAssessmentRepository{
+			GetByIDFn: func(_ context.Context, _ uuid.UUID) (*pgentities.Assessment, error) {
+				return &pgentities.Assessment{ID: assessmentID, Title: &title, Status: "draft"}, nil
+			},
+		}
+		matRepo := &mock.MockAssessmentMaterialRepository{
+			ReplaceForAssessmentFn: func(_ context.Context, _ uuid.UUID, materialIDs []uuid.UUID) error {
+				replacedIDs = materialIDs
+				return nil
+			},
+			GetByAssessmentFn: func(_ context.Context, _ uuid.UUID) ([]pgentities.AssessmentMaterial, error) {
+				return []pgentities.AssessmentMaterial{{MaterialID: matID}}, nil
+			},
+			GetMaterialTitlesFn: func(_ context.Context, _ []uuid.UUID) (map[uuid.UUID]string, error) {
+				return map[uuid.UUID]string{matID: "Mat Title"}, nil
+			},
+		}
+
+		svc := newTestMgmtServiceWithMaterials(assessRepo, matRepo, nil)
+		resp, err := svc.UpdateAssessment(ctx, assessmentID, dto.UpdateAssessmentRequest{
+			MaterialIDs: []string{matID.String()},
+		})
+
+		require.NoError(t, err)
+		assert.Len(t, replacedIDs, 1)
+		assert.Len(t, resp.MaterialIDs, 1)
+	})
+
+	t.Run("invalid material_id rejected before update", func(t *testing.T) {
+		title := "Original"
+		updated := false
+		assessRepo := &mock.MockAssessmentRepository{
+			GetByIDFn: func(_ context.Context, _ uuid.UUID) (*pgentities.Assessment, error) {
+				return &pgentities.Assessment{ID: assessmentID, Title: &title, Status: "draft"}, nil
+			},
+			UpdateFn: func(_ context.Context, _ *pgentities.Assessment) error {
+				updated = true
+				return nil
+			},
+		}
+
+		svc := newTestMgmtService(assessRepo, nil)
+		_, err := svc.UpdateAssessment(ctx, assessmentID, dto.UpdateAssessmentRequest{
+			MaterialIDs: []string{"not-a-uuid"},
+		})
+
+		require.Error(t, err)
+		assert.False(t, updated, "assessment should NOT be updated when material_ids are invalid")
+	})
+}
+
+func TestMgmt_ListAssessments_WithMaterialTitles(t *testing.T) {
+	ctx := context.Background()
+	schoolID := uuid.New()
+	matID := uuid.New()
+
+	t.Run("fetches material titles in batch", func(t *testing.T) {
+		titlesFetched := false
+		assessRepo := &mock.MockAssessmentRepository{
+			ListFn: func(_ context.Context, _ repository.AssessmentFilter) ([]pgentities.Assessment, int, error) {
+				title := "Test"
+				return []pgentities.Assessment{
+					{
+						ID: uuid.New(), Title: &title, Status: "draft",
+						Materials: []pgentities.AssessmentMaterial{{MaterialID: matID}},
+					},
+				}, 1, nil
+			},
+		}
+		matRepo := &mock.MockAssessmentMaterialRepository{
+			GetMaterialTitlesFn: func(_ context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {
+				titlesFetched = true
+				assert.Contains(t, ids, matID)
+				return map[uuid.UUID]string{matID: "Fetched Title"}, nil
+			},
+		}
+
+		svc := newTestMgmtServiceWithMaterials(assessRepo, matRepo, nil)
+		resp, err := svc.ListAssessments(ctx, schoolID, dto.ListAssessmentsRequest{Limit: 20})
+		require.NoError(t, err)
+		assert.True(t, titlesFetched, "material titles should be fetched in batch")
+		items := resp.Data.([]dto.AssessmentManagementResponse)
+		require.Len(t, items, 1)
+		require.Len(t, items[0].Materials, 1)
+		assert.Equal(t, "Fetched Title", items[0].Materials[0].Title)
 	})
 }

@@ -8,7 +8,7 @@ import (
 
 // CreateAssessmentRequest is the payload for creating a manual assessment.
 // Numeric fields use float64 to tolerate both integer and decimal JSON numbers.
-// The service truncates to int when writing to the database.
+// When writing to the database, only MaxAttempts is truncated to int; PassThreshold and TimeLimitMinutes retain decimal precision.
 type CreateAssessmentRequest struct {
 	Title              string     `json:"title" binding:"required"`
 	Description        string     `json:"description"`
@@ -55,25 +55,25 @@ type MaterialSummaryDTO struct {
 
 // AssessmentManagementResponse is the API response for assessment management endpoints.
 type AssessmentManagementResponse struct {
-	ID                 uuid.UUID           `json:"id"`
-	Title              string              `json:"title"`
-	Description        string              `json:"description"`
-	QuestionsCount     int                 `json:"questions_count"`
-	MaterialIDs        []string            `json:"material_ids"`
+	ID                 uuid.UUID            `json:"id"`
+	Title              string               `json:"title"`
+	Description        string               `json:"description"`
+	QuestionsCount     int                  `json:"questions_count"`
+	MaterialIDs        []string             `json:"material_ids"`
 	Materials          []MaterialSummaryDTO `json:"materials"`
-	PassThreshold      *float64            `json:"pass_threshold,omitempty"`
-	MaxAttempts        *int                `json:"max_attempts,omitempty"`
-	TimeLimitMinutes   *float64            `json:"time_limit_minutes,omitempty"`
-	IsTimed            bool                `json:"is_timed"`
-	ShuffleQuestions   bool                `json:"shuffle_questions"`
-	ShowCorrectAnswers bool                `json:"show_correct_answers"`
-	AvailableFrom      *time.Time          `json:"available_from,omitempty"`
-	AvailableUntil     *time.Time          `json:"available_until,omitempty"`
-	Status             string              `json:"status"`
-	SchoolID           *uuid.UUID          `json:"school_id,omitempty"`
-	CreatedByUserID    *uuid.UUID          `json:"created_by_user_id,omitempty"`
-	CreatedAt          time.Time           `json:"created_at"`
-	UpdatedAt          time.Time           `json:"updated_at"`
+	PassThreshold      *float64             `json:"pass_threshold,omitempty"`
+	MaxAttempts        *int                 `json:"max_attempts,omitempty"`
+	TimeLimitMinutes   *float64             `json:"time_limit_minutes,omitempty"`
+	IsTimed            bool                 `json:"is_timed"`
+	ShuffleQuestions   bool                 `json:"shuffle_questions"`
+	ShowCorrectAnswers bool                 `json:"show_correct_answers"`
+	AvailableFrom      *time.Time           `json:"available_from,omitempty"`
+	AvailableUntil     *time.Time           `json:"available_until,omitempty"`
+	Status             string               `json:"status"`
+	SchoolID           *uuid.UUID           `json:"school_id,omitempty"`
+	CreatedByUserID    *uuid.UUID           `json:"created_by_user_id,omitempty"`
+	CreatedAt          time.Time            `json:"created_at"`
+	UpdatedAt          time.Time            `json:"updated_at"`
 }
 
 // ListAssessmentsRequest holds query parameters for listing assessments.
@@ -105,14 +105,14 @@ type TeacherQuestionResponse struct {
 
 // CreateQuestionRequest is the payload for adding a question.
 type CreateQuestionRequest struct {
-	QuestionText  string           `json:"question_text" binding:"required"`
-	QuestionType  string           `json:"question_type" binding:"required,oneof=multiple_choice true_false open"`
-	Options       []OptionRequest  `json:"options"`
-	CorrectAnswer string           `json:"correct_answer" binding:"required"`
-	Explanation   string           `json:"explanation"`
-	Points        int              `json:"points" binding:"required,min=1"`
-	Difficulty    string           `json:"difficulty" binding:"required,oneof=easy medium hard"`
-	Tags          []string         `json:"tags"`
+	QuestionText  string          `json:"question_text" binding:"required"`
+	QuestionType  string          `json:"question_type" binding:"required,oneof=multiple_choice true_false open"`
+	Options       []OptionRequest `json:"options"`
+	CorrectAnswer string          `json:"correct_answer" binding:"required"`
+	Explanation   string          `json:"explanation"`
+	Points        int             `json:"points" binding:"required,min=1"`
+	Difficulty    string          `json:"difficulty" binding:"required,oneof=easy medium hard"`
+	Tags          []string        `json:"tags"`
 }
 
 // OptionRequest is an option in a question create/update request.
@@ -123,12 +123,12 @@ type OptionRequest struct {
 
 // UpdateQuestionRequest is the payload for updating a question.
 type UpdateQuestionRequest struct {
-	QuestionText  *string          `json:"question_text"`
-	QuestionType  *string          `json:"question_type" binding:"omitempty,oneof=multiple_choice true_false open"`
-	Options       []OptionRequest  `json:"options"`
-	CorrectAnswer *string          `json:"correct_answer"`
-	Explanation   *string          `json:"explanation"`
-	Points        *int             `json:"points" binding:"omitempty,min=1"`
-	Difficulty    *string          `json:"difficulty" binding:"omitempty,oneof=easy medium hard"`
-	Tags          []string         `json:"tags"`
+	QuestionText  *string         `json:"question_text"`
+	QuestionType  *string         `json:"question_type" binding:"omitempty,oneof=multiple_choice true_false open"`
+	Options       []OptionRequest `json:"options"`
+	CorrectAnswer *string         `json:"correct_answer"`
+	Explanation   *string         `json:"explanation"`
+	Points        *int            `json:"points" binding:"omitempty,min=1"`
+	Difficulty    *string         `json:"difficulty" binding:"omitempty,oneof=easy medium hard"`
+	Tags          []string        `json:"tags"`
 }
