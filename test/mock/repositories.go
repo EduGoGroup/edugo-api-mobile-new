@@ -177,6 +177,11 @@ type MockAttemptRepository struct {
 	GetAnswersByAttemptIDFn       func(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
 	ListByUserIDFn                func(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error)
 	CountByAssessmentAndStudentFn func(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
+	CreateAttemptOnlyFn                    func(ctx context.Context, attempt *pgentities.AssessmentAttempt) error
+	GetInProgressByStudentAndAssessmentFn  func(ctx context.Context, studentID, assessmentID uuid.UUID) (*pgentities.AssessmentAttempt, error)
+	UpsertAnswerFn                         func(ctx context.Context, answer *pgentities.AssessmentAttemptAnswer) error
+	UpdateAttemptFn                        func(ctx context.Context, attempt *pgentities.AssessmentAttempt) error
+	UpdateAnswersFn                        func(ctx context.Context, answers []pgentities.AssessmentAttemptAnswer) error
 }
 
 func (m *MockAttemptRepository) Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error {
@@ -212,6 +217,41 @@ func (m *MockAttemptRepository) CountByAssessmentAndStudent(ctx context.Context,
 		return m.CountByAssessmentAndStudentFn(ctx, assessmentID, studentID)
 	}
 	return 0, nil
+}
+
+func (m *MockAttemptRepository) CreateAttemptOnly(ctx context.Context, attempt *pgentities.AssessmentAttempt) error {
+	if m.CreateAttemptOnlyFn != nil {
+		return m.CreateAttemptOnlyFn(ctx, attempt)
+	}
+	return nil
+}
+
+func (m *MockAttemptRepository) GetInProgressByStudentAndAssessment(ctx context.Context, studentID, assessmentID uuid.UUID) (*pgentities.AssessmentAttempt, error) {
+	if m.GetInProgressByStudentAndAssessmentFn != nil {
+		return m.GetInProgressByStudentAndAssessmentFn(ctx, studentID, assessmentID)
+	}
+	return nil, nil
+}
+
+func (m *MockAttemptRepository) UpsertAnswer(ctx context.Context, answer *pgentities.AssessmentAttemptAnswer) error {
+	if m.UpsertAnswerFn != nil {
+		return m.UpsertAnswerFn(ctx, answer)
+	}
+	return nil
+}
+
+func (m *MockAttemptRepository) UpdateAttempt(ctx context.Context, attempt *pgentities.AssessmentAttempt) error {
+	if m.UpdateAttemptFn != nil {
+		return m.UpdateAttemptFn(ctx, attempt)
+	}
+	return nil
+}
+
+func (m *MockAttemptRepository) UpdateAnswers(ctx context.Context, answers []pgentities.AssessmentAttemptAnswer) error {
+	if m.UpdateAnswersFn != nil {
+		return m.UpdateAnswersFn(ctx, answers)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------

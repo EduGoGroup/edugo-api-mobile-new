@@ -70,6 +70,9 @@ func Setup(c *container.Container) *gin.Engine {
 		assessments.PATCH("/:id/archive", sharedmw.RequirePermission(enum.PermissionAssessmentsUpdate), c.Handlers.AssessmentMgmt.Archive)
 		assessments.DELETE("/:id", sharedmw.RequirePermission(enum.PermissionAssessmentsDelete), c.Handlers.AssessmentMgmt.Delete)
 
+		// Progressive attempt flow
+		assessments.POST("/:id/start", sharedmw.RequirePermission(enum.PermissionAssessmentsAttempt), c.Handlers.Assessment.StartAttempt)
+
 		// Question management (nested under assessment)
 		assessments.GET("/:id/questions", sharedmw.RequirePermission(enum.PermissionAssessmentsRead), c.Handlers.AssessmentMgmt.GetQuestions)
 		assessments.POST("/:id/questions", sharedmw.RequirePermission(enum.PermissionAssessmentsCreate), c.Handlers.AssessmentMgmt.AddQuestion)
@@ -81,6 +84,8 @@ func Setup(c *container.Container) *gin.Engine {
 	attempts := v1.Group("/attempts")
 	{
 		attempts.GET("/:id/results", sharedmw.RequirePermission(enum.PermissionAssessmentsViewResults), c.Handlers.Assessment.GetAttemptResult)
+		attempts.PUT("/:id/answers/:questionIndex", sharedmw.RequirePermission(enum.PermissionAssessmentsAttempt), c.Handlers.Assessment.SaveAnswer)
+		attempts.POST("/:id/submit", sharedmw.RequirePermission(enum.PermissionAssessmentsAttempt), c.Handlers.Assessment.SubmitAttempt)
 	}
 
 	// Users
