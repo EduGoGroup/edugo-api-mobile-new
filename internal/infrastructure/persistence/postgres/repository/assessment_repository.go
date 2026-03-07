@@ -26,10 +26,12 @@ func NewAssessmentRepository(db *gorm.DB) *AssessmentRepository {
 	return &AssessmentRepository{db: db}
 }
 
-// GetByID retrieves an assessment by its ID.
+// GetByID retrieves an assessment by its ID, preloading its material associations.
 func (r *AssessmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgentities.Assessment, error) {
 	var a pgentities.Assessment
-	err := r.db.WithContext(ctx).First(&a, "id = ?", id).Error
+	err := r.db.WithContext(ctx).Preload("Materials", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order ASC")
+	}).First(&a, "id = ?", id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, sharedErrors.NewNotFoundError("assessment")
@@ -39,10 +41,17 @@ func (r *AssessmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgen
 	return &a, nil
 }
 
-// GetByMaterialID retrieves the assessment for a given material.
+// GetByMaterialID retrieves the assessment for a given material via the junction table.
 func (r *AssessmentRepository) GetByMaterialID(ctx context.Context, materialID uuid.UUID) (*pgentities.Assessment, error) {
 	var a pgentities.Assessment
-	err := r.db.WithContext(ctx).Where("material_id = ?", materialID).Order("created_at DESC").First(&a).Error
+	err := r.db.WithContext(ctx).
+		Joins("JOIN assessment.assessment_materials am ON am.assessment_id = assessment.assessment.id").
+		Where("am.material_id = ?", materialID).
+		Order("assessment.assessment.created_at DESC").
+		Preload("Materials", func(db *gorm.DB) *gorm.DB {
+			return db.Order("sort_order ASC")
+		}).
+		First(&a).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, sharedErrors.NewNotFoundError("assessment")
@@ -105,7 +114,9 @@ func (r *AssessmentRepository) List(ctx context.Context, filter domainrepo.Asses
 	}
 
 	var assessments []pgentities.Assessment
-	err := query.Order("created_at DESC").Limit(limit).Offset(filter.Offset).Find(&assessments).Error
+	err := query.Preload("Materials", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order ASC")
+	}).Order("created_at DESC").Limit(limit).Offset(filter.Offset).Find(&assessments).Error
 	if err != nil {
 		return nil, 0, sharedErrors.NewDatabaseError("list assessments", err)
 	}

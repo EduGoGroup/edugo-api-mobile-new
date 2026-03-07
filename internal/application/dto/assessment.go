@@ -24,15 +24,16 @@ type OptionResponse struct {
 
 // AssessmentResponse is the assessment payload returned to students.
 type AssessmentResponse struct {
-	ID             uuid.UUID          `json:"id"`
-	MaterialID     *uuid.UUID         `json:"material_id,omitempty"`
-	Title          *string            `json:"title,omitempty"`
-	QuestionsCount int                `json:"questions_count"`
-	PassThreshold  *int               `json:"pass_threshold,omitempty"`
-	MaxAttempts    *int               `json:"max_attempts,omitempty"`
-	TimeLimitMin   *int               `json:"time_limit_minutes,omitempty"`
-	Status         string             `json:"status"`
-	Questions      []QuestionResponse `json:"questions"`
+	ID               uuid.UUID          `json:"id"`
+	Title            *string            `json:"title,omitempty"`
+	QuestionsCount   int                `json:"questions_count"`
+	PassThreshold    *float64           `json:"pass_threshold,omitempty"`
+	MaxAttempts      *int               `json:"max_attempts,omitempty"`
+	TimeLimitMin     *float64           `json:"time_limit_minutes,omitempty"`
+	IsTimed          bool               `json:"is_timed"`
+	ShuffleQuestions bool               `json:"shuffle_questions"`
+	Status           string             `json:"status"`
+	Questions        []QuestionResponse `json:"questions"`
 }
 
 // CreateAttemptRequest is the payload for submitting answers.

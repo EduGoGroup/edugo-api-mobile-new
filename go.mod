@@ -3,18 +3,18 @@ module github.com/EduGoGroup/edugo-api-mobile-new
 go 1.25.5
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.52.0
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.59.1
+	github.com/EduGoGroup/edugo-infrastructure/mongodb v0.53.0
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.60.0
 	github.com/EduGoGroup/edugo-shared/audit v0.1.0
 	github.com/EduGoGroup/edugo-shared/audit/postgres v0.1.0
 	github.com/EduGoGroup/edugo-shared/auth v0.52.0
 	github.com/EduGoGroup/edugo-shared/cache/redis v0.1.2
-	github.com/EduGoGroup/edugo-shared/common v0.53.0
+	github.com/EduGoGroup/edugo-shared/common v0.54.0
 	github.com/EduGoGroup/edugo-shared/logger v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1
 	github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3
 	github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.0
-	github.com/EduGoGroup/edugo-shared/repository v0.3.2
+	github.com/EduGoGroup/edugo-shared/repository v0.4.0
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
@@ -23,6 +23,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/lib/pq v1.11.2
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/go-redis/v9 v9.18.0
@@ -79,7 +80,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.8.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

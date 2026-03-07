@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -59,18 +61,27 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	c := &Container{Logger: log}
 
 	// --- PostgreSQL (GORM) ---
-	db, err := gorm.Open(postgres.Open(cfg.Database.Postgres.GormDSN()), &gorm.Config{})
+	// Use pgx SimpleProtocol to disable prepared statement caching at the driver level.
+	// Neon's pooler (PgBouncer transaction mode) does not support prepared statements.
+	pgxConfig, err := pgx.ParseConfig(cfg.Database.Postgres.DSN())
 	if err != nil {
-		return nil, fmt.Errorf("opening postgres: %w", err)
+		return nil, fmt.Errorf("parsing postgres DSN: %w", err)
 	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("getting underlying sql.DB: %w", err)
-	}
+	pgxConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	pgxConfig.RuntimeParams["search_path"] = "content,assessment,iam,ui_config,public"
+
+	sqlDB := stdlib.OpenDB(*pgxConfig)
 	sqlDB.SetMaxOpenConns(cfg.Database.Postgres.MaxOpenConns)
 	sqlDB.SetMaxIdleConns(cfg.Database.Postgres.MaxIdleConns)
 	if err := sqlDB.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("pinging postgres: %w", err)
+	}
+
+	db, err := gorm.Open(postgres.New(postgres.Config{Conn: sqlDB}), &gorm.Config{
+		PrepareStmt: false,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("opening postgres: %w", err)
 	}
 	c.db = db
 	log.Info("PostgreSQL connected", "host", cfg.Database.Postgres.Host, "database", cfg.Database.Postgres.Database)
@@ -157,6 +168,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	// --- PostgreSQL Repositories ---
 	materialRepo := pgrepo.NewMaterialRepository(db)
 	assessmentRepo := pgrepo.NewAssessmentRepository(db)
+	assessmentMaterialRepo := pgrepo.NewAssessmentMaterialRepository(db)
 	attemptRepo := pgrepo.NewAttemptRepository(db)
 	progressRepo := pgrepo.NewProgressRepository(db)
 	screenRepo := pgrepo.NewScreenRepository(db)
@@ -178,7 +190,7 @@ func New(ctx context.Context, cfg *config.Config, log logger.Logger) (*Container
 	// --- Application Services ---
 	materialSvc := service.NewMaterialService(materialRepo, s3Client, publisher, log, cfg.Messaging.RabbitMQ.Exchange, auditLogger)
 	assessmentSvc := service.NewAssessmentService(assessmentRepo, attemptRepo, mongoAssessmentRepo, log, auditLogger)
-	assessmentMgmtSvc := service.NewAssessmentManagementService(assessmentRepo, mongoAssessmentRepo, log)
+	assessmentMgmtSvc := service.NewAssessmentManagementService(assessmentRepo, assessmentMaterialRepo, mongoAssessmentRepo, log)
 	progressSvc := service.NewProgressService(progressRepo, log)
 	screenSvc := service.NewScreenService(screenRepo, iamClient, cacheSvc, log)
 	statsSvc := service.NewStatsService(statsRepo, log)

@@ -2493,20 +2493,41 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
-                "material_id": {
+                "available_from": {
                     "type": "string"
                 },
+                "available_until": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_timed": {
+                    "type": "boolean"
+                },
+                "material_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "max_attempts": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 1
                 },
                 "pass_threshold": {
-                    "type": "integer",
+                    "type": "number",
                     "maximum": 100,
                     "minimum": 0
                 },
+                "show_correct_answers": {
+                    "type": "boolean"
+                },
+                "shuffle_questions": {
+                    "type": "boolean"
+                },
                 "time_limit_minutes": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 1
                 },
                 "title": {
@@ -2714,17 +2735,41 @@ const docTemplate = `{
         "github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateAssessmentRequest": {
             "type": "object",
             "properties": {
+                "available_from": {
+                    "type": "string"
+                },
+                "available_until": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_timed": {
+                    "type": "boolean"
+                },
+                "material_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "max_attempts": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 1
                 },
                 "pass_threshold": {
-                    "type": "integer",
+                    "type": "number",
                     "maximum": 100,
                     "minimum": 0
                 },
+                "show_correct_answers": {
+                    "type": "boolean"
+                },
+                "shuffle_questions": {
+                    "type": "boolean"
+                },
                 "time_limit_minutes": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 1
                 },
                 "title": {

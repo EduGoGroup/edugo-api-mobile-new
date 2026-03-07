@@ -53,21 +53,28 @@ func (s *AssessmentService) GetAssessmentByMaterialID(ctx context.Context, mater
 		return nil, err
 	}
 
-	// Fetch questions from MongoDB
-	mongoDoc, err := s.mongoAssessmentRepo.GetByMaterialID(ctx, materialID.String())
-	if err != nil {
-		s.log.Warn("failed to fetch questions from MongoDB, returning assessment without questions",
-			"error", err, "material_id", materialID)
+	// Fetch questions from MongoDB using the mongo_document_id
+	var mongoDoc *mongoentities.MaterialAssessment
+	if assessment.MongoDocumentID != "" {
+		mongoDoc, err = s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
+		if err != nil {
+			s.log.Warn("failed to fetch questions from MongoDB, returning assessment without questions",
+				"error", err, "material_id", materialID)
+		}
+	}
+
+	if mongoDoc == nil {
 		return &dto.AssessmentResponse{
-			ID:             assessment.ID,
-			MaterialID:     assessment.MaterialID,
-			Title:          assessment.Title,
-			QuestionsCount: assessment.QuestionsCount,
-			PassThreshold:  assessment.PassThreshold,
-			MaxAttempts:    assessment.MaxAttempts,
-			TimeLimitMin:   assessment.TimeLimitMinutes,
-			Status:         assessment.Status,
-			Questions:      []dto.QuestionResponse{},
+			ID:               assessment.ID,
+			Title:            assessment.Title,
+			QuestionsCount:   assessment.QuestionsCount,
+			PassThreshold:    assessment.PassThreshold,
+			MaxAttempts:      assessment.MaxAttempts,
+			TimeLimitMin:     assessment.TimeLimitMinutes,
+			IsTimed:          assessment.IsTimed,
+			ShuffleQuestions: assessment.ShuffleQuestions,
+			Status:           assessment.Status,
+			Questions:        []dto.QuestionResponse{},
 		}, nil
 	}
 
@@ -92,15 +99,16 @@ func (s *AssessmentService) GetAssessmentByMaterialID(ctx context.Context, mater
 	}
 
 	return &dto.AssessmentResponse{
-		ID:             assessment.ID,
-		MaterialID:     assessment.MaterialID,
-		Title:          assessment.Title,
-		QuestionsCount: assessment.QuestionsCount,
-		PassThreshold:  assessment.PassThreshold,
-		MaxAttempts:    assessment.MaxAttempts,
-		TimeLimitMin:   assessment.TimeLimitMinutes,
-		Status:         assessment.Status,
-		Questions:      questions,
+		ID:               assessment.ID,
+		Title:            assessment.Title,
+		QuestionsCount:   assessment.QuestionsCount,
+		PassThreshold:    assessment.PassThreshold,
+		MaxAttempts:      assessment.MaxAttempts,
+		TimeLimitMin:     assessment.TimeLimitMinutes,
+		IsTimed:          assessment.IsTimed,
+		ShuffleQuestions: assessment.ShuffleQuestions,
+		Status:           assessment.Status,
+		Questions:        questions,
 	}, nil
 }
 
@@ -127,8 +135,11 @@ func (s *AssessmentService) CreateAttempt(
 		}
 	}
 
-	// Fetch questions from MongoDB for grading
-	mongoDoc, err := s.mongoAssessmentRepo.GetByMaterialID(ctx, materialID.String())
+	// Fetch questions from MongoDB for grading using the mongo_document_id
+	if assessment.MongoDocumentID == "" {
+		return nil, errors.NewInternalError("assessment has no questions document", nil)
+	}
+	mongoDoc, err := s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
 	if err != nil {
 		return nil, errors.NewInternalError("failed to retrieve questions for grading", err)
 	}
@@ -256,13 +267,9 @@ func (s *AssessmentService) GetAttemptResult(ctx context.Context, attemptID uuid
 	}
 
 	// Fetch questions from MongoDB for explanations and correct answers.
-	// For material-based assessments, look up by material_id.
-	// For manual assessments (no material), look up by mongo_document_id.
 	var mongoDoc *mongoentities.MaterialAssessment
 	var mongoErr error
-	if assessment.MaterialID != nil {
-		mongoDoc, mongoErr = s.mongoAssessmentRepo.GetByMaterialID(ctx, assessment.MaterialID.String())
-	} else if assessment.MongoDocumentID != "" {
+	if assessment.MongoDocumentID != "" {
 		mongoDoc, mongoErr = s.mongoAssessmentRepo.GetByObjectID(ctx, assessment.MongoDocumentID)
 	}
 	if mongoErr != nil {

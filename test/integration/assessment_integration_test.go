@@ -55,9 +55,15 @@ func TestAssessmentAndAttemptCRUD(t *testing.T) {
 
 	// Create assessment
 	t.Run("Create assessment", func(t *testing.T) {
-		err := db.Exec(`INSERT INTO assessment (id, material_id, questions_count, status, created_at, updated_at)
+		err := db.Exec(`INSERT INTO assessment.assessment (id, mongo_document_id, questions_count, status, created_at, updated_at)
 			VALUES (?, ?, ?, ?, NOW(), NOW())`,
-			assessmentID, materialID, 2, "published").Error
+			assessmentID, "integration_test_doc", 2, "published").Error
+		require.NoError(t, err)
+
+		// Create junction table entry
+		err = db.Exec(`INSERT INTO assessment.assessment_materials (id, assessment_id, material_id, sort_order, created_at)
+			VALUES (?, ?, ?, 0, NOW())`,
+			uuid.New(), assessmentID, materialID).Error
 		require.NoError(t, err)
 	})
 
@@ -66,7 +72,6 @@ func TestAssessmentAndAttemptCRUD(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, assessment)
 		assert.Equal(t, assessmentID, assessment.ID)
-		assert.Equal(t, materialID, assessment.MaterialID)
 		assert.Equal(t, 2, assessment.QuestionsCount)
 	})
 
