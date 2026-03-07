@@ -86,3 +86,62 @@ func (r *AttemptRepository) CountByAssessmentAndStudent(ctx context.Context, ass
 	}
 	return int(count), nil
 }
+
+// CreateAttemptOnly inserts an attempt without answers.
+func (r *AttemptRepository) CreateAttemptOnly(ctx context.Context, attempt *pgentities.AssessmentAttempt) error {
+	if err := r.db.WithContext(ctx).Create(attempt).Error; err != nil {
+		return sharedErrors.NewDatabaseError("insert attempt", err)
+	}
+	return nil
+}
+
+// GetInProgressByStudentAndAssessment returns an in-progress attempt for a student+assessment, or nil if none.
+func (r *AttemptRepository) GetInProgressByStudentAndAssessment(ctx context.Context, studentID, assessmentID uuid.UUID) (*pgentities.AssessmentAttempt, error) {
+	var a pgentities.AssessmentAttempt
+	err := r.db.WithContext(ctx).
+		Where("student_id = ? AND assessment_id = ? AND status = ?", studentID, assessmentID, "in_progress").
+		First(&a).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, sharedErrors.NewDatabaseError("get in-progress attempt", err)
+	}
+	return &a, nil
+}
+
+// UpsertAnswer inserts or updates an answer keyed by attempt_id + question_index.
+func (r *AttemptRepository) UpsertAnswer(ctx context.Context, answer *pgentities.AssessmentAttemptAnswer) error {
+	if err := r.db.WithContext(ctx).
+		Where("attempt_id = ? AND question_index = ?", answer.AttemptID, answer.QuestionIndex).
+		Assign(pgentities.AssessmentAttemptAnswer{
+			StudentAnswer:    answer.StudentAnswer,
+			TimeSpentSeconds: answer.TimeSpentSeconds,
+			AnsweredAt:       answer.AnsweredAt,
+			UpdatedAt:        answer.UpdatedAt,
+		}).
+		FirstOrCreate(answer).Error; err != nil {
+		return sharedErrors.NewDatabaseError("upsert answer", err)
+	}
+	return nil
+}
+
+// UpdateAttempt updates an existing attempt.
+func (r *AttemptRepository) UpdateAttempt(ctx context.Context, attempt *pgentities.AssessmentAttempt) error {
+	if err := r.db.WithContext(ctx).Save(attempt).Error; err != nil {
+		return sharedErrors.NewDatabaseError("update attempt", err)
+	}
+	return nil
+}
+
+// UpdateAnswers batch-updates answers.
+func (r *AttemptRepository) UpdateAnswers(ctx context.Context, answers []pgentities.AssessmentAttemptAnswer) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for i := range answers {
+			if err := tx.Save(&answers[i]).Error; err != nil {
+				return sharedErrors.NewDatabaseError("update answer", err)
+			}
+		}
+		return nil
+	})
+}

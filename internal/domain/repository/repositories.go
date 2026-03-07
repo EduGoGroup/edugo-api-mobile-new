@@ -63,10 +63,15 @@ type AssessmentMaterialRepository interface {
 // AttemptRepository defines operations for assessment attempts in PostgreSQL.
 type AttemptRepository interface {
 	Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error
+	CreateAttemptOnly(ctx context.Context, attempt *pgentities.AssessmentAttempt) error
 	GetByID(ctx context.Context, id uuid.UUID) (*pgentities.AssessmentAttempt, error)
+	GetInProgressByStudentAndAssessment(ctx context.Context, studentID, assessmentID uuid.UUID) (*pgentities.AssessmentAttempt, error)
 	GetAnswersByAttemptID(ctx context.Context, attemptID uuid.UUID) ([]pgentities.AssessmentAttemptAnswer, error)
 	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int, filters sharedrepo.ListFilters) ([]pgentities.AssessmentAttempt, int, error)
 	CountByAssessmentAndStudent(ctx context.Context, assessmentID, studentID uuid.UUID) (int, error)
+	UpsertAnswer(ctx context.Context, answer *pgentities.AssessmentAttemptAnswer) error
+	UpdateAttempt(ctx context.Context, attempt *pgentities.AssessmentAttempt) error
+	UpdateAnswers(ctx context.Context, answers []pgentities.AssessmentAttemptAnswer) error
 }
 
 // ProgressRepository defines operations for reading progress in PostgreSQL.

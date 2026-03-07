@@ -192,6 +192,15 @@ definitions:
     required:
     - option_text
     type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SaveAnswerRequest:
+    properties:
+      answer:
+        type: string
+      time_spent_seconds:
+        type: integer
+    required:
+    - answer
+    type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SavePreferencesRequest:
     properties:
       preferences:
@@ -200,6 +209,13 @@ definitions:
         type: array
     required:
     - preferences
+    type: object
+  github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SubmitAttemptRequest:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.AnswerSubmission'
+        type: array
     type: object
   github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.UpdateAssessmentRequest:
     properties:
@@ -840,6 +856,108 @@ paths:
       summary: Update a question by index
       tags:
       - assessment-questions
+  /assessments/{id}/start:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assessment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Start a progressive assessment attempt
+      tags:
+      - assessments
+  /attempts/{id}/answers/{questionIndex}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Attempt ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question index
+        in: path
+        name: questionIndex
+        required: true
+        type: integer
+      - description: Answer data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SaveAnswerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Save a single answer for a progressive attempt
+      tags:
+      - assessments
   /attempts/{id}/results:
     get:
       consumes:
@@ -881,6 +999,59 @@ paths:
       security:
       - BearerAuth: []
       summary: Get result of an assessment attempt
+      tags:
+      - assessments
+  /attempts/{id}/submit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Attempt ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Optional remaining answers
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_EduGoGroup_edugo-api-mobile-new_internal_application_dto.SubmitAttemptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit and finalize a progressive attempt
       tags:
       - assessments
   /guardian-relations/{id}/approve:
