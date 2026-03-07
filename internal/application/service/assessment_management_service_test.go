@@ -22,7 +22,7 @@ func newTestMgmtService(
 	assessRepo *mock.MockAssessmentRepository,
 	mongoRepo *mock.MockMongoAssessmentRepository,
 ) *AssessmentManagementService {
-	return NewAssessmentManagementService(assessRepo, mongoRepo, mock.MockLogger{})
+	return NewAssessmentManagementService(assessRepo, &mock.MockAssessmentMaterialRepository{}, mongoRepo, mock.MockLogger{})
 }
 
 func TestMgmt_CreateAssessment(t *testing.T) {
@@ -53,7 +53,6 @@ func TestMgmt_CreateAssessment(t *testing.T) {
 					assert.Equal(t, "aabbccddee0011223344ff00", a.MongoDocumentID)
 					assert.Equal(t, &schoolID, a.SchoolID)
 					assert.Equal(t, &userID, a.CreatedByUserID)
-					assert.Nil(t, a.MaterialID)
 					return nil
 				}
 			},

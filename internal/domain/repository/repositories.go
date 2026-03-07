@@ -52,6 +52,14 @@ type AssessmentRepository interface {
 	UpdateQuestionsCount(ctx context.Context, id uuid.UUID, count int) error
 }
 
+// AssessmentMaterialRepository defines operations for the N:N assessment-material junction table.
+type AssessmentMaterialRepository interface {
+	ReplaceForAssessment(ctx context.Context, assessmentID uuid.UUID, materialIDs []uuid.UUID) error
+	GetByAssessment(ctx context.Context, assessmentID uuid.UUID) ([]pgentities.AssessmentMaterial, error)
+	GetMaterialTitles(ctx context.Context, materialIDs []uuid.UUID) (map[uuid.UUID]string, error)
+	GetAssessmentIDsByMaterialID(ctx context.Context, materialID uuid.UUID) ([]uuid.UUID, error)
+}
+
 // AttemptRepository defines operations for assessment attempts in PostgreSQL.
 type AttemptRepository interface {
 	Create(ctx context.Context, attempt *pgentities.AssessmentAttempt, answers []pgentities.AssessmentAttemptAnswer) error

@@ -127,6 +127,46 @@ func (m *MockAssessmentRepository) UpdateQuestionsCount(ctx context.Context, id 
 }
 
 // ---------------------------------------------------------------------------
+// AssessmentMaterialRepository mock
+// ---------------------------------------------------------------------------
+
+// MockAssessmentMaterialRepository is a mock implementation of repository.AssessmentMaterialRepository.
+type MockAssessmentMaterialRepository struct {
+	ReplaceForAssessmentFn         func(ctx context.Context, assessmentID uuid.UUID, materialIDs []uuid.UUID) error
+	GetByAssessmentFn              func(ctx context.Context, assessmentID uuid.UUID) ([]pgentities.AssessmentMaterial, error)
+	GetMaterialTitlesFn            func(ctx context.Context, materialIDs []uuid.UUID) (map[uuid.UUID]string, error)
+	GetAssessmentIDsByMaterialIDFn func(ctx context.Context, materialID uuid.UUID) ([]uuid.UUID, error)
+}
+
+func (m *MockAssessmentMaterialRepository) ReplaceForAssessment(ctx context.Context, assessmentID uuid.UUID, materialIDs []uuid.UUID) error {
+	if m.ReplaceForAssessmentFn != nil {
+		return m.ReplaceForAssessmentFn(ctx, assessmentID, materialIDs)
+	}
+	return nil
+}
+
+func (m *MockAssessmentMaterialRepository) GetByAssessment(ctx context.Context, assessmentID uuid.UUID) ([]pgentities.AssessmentMaterial, error) {
+	if m.GetByAssessmentFn != nil {
+		return m.GetByAssessmentFn(ctx, assessmentID)
+	}
+	return nil, nil
+}
+
+func (m *MockAssessmentMaterialRepository) GetMaterialTitles(ctx context.Context, materialIDs []uuid.UUID) (map[uuid.UUID]string, error) {
+	if m.GetMaterialTitlesFn != nil {
+		return m.GetMaterialTitlesFn(ctx, materialIDs)
+	}
+	return map[uuid.UUID]string{}, nil
+}
+
+func (m *MockAssessmentMaterialRepository) GetAssessmentIDsByMaterialID(ctx context.Context, materialID uuid.UUID) ([]uuid.UUID, error) {
+	if m.GetAssessmentIDsByMaterialIDFn != nil {
+		return m.GetAssessmentIDsByMaterialIDFn(ctx, materialID)
+	}
+	return nil, nil
+}
+
+// ---------------------------------------------------------------------------
 // AttemptRepository mock
 // ---------------------------------------------------------------------------
 

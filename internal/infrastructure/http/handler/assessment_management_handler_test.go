@@ -29,7 +29,7 @@ func setupManagementHandler(
 	assessRepo *mock.MockAssessmentRepository,
 	mongoRepo *mock.MockMongoAssessmentRepository,
 ) (*AssessmentManagementHandler, *gin.Engine) {
-	svc := service.NewAssessmentManagementService(assessRepo, mongoRepo, mock.MockLogger{})
+	svc := service.NewAssessmentManagementService(assessRepo, &mock.MockAssessmentMaterialRepository{}, mongoRepo, mock.MockLogger{})
 	h := NewAssessmentManagementHandler(svc)
 	r := gin.New()
 	return h, r

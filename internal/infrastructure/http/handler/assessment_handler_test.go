@@ -52,11 +52,11 @@ func TestAssessmentHandler_GetAssessment(t *testing.T) {
 			param: materialID.String(),
 			setupA: func(m *mock.MockAssessmentRepository) {
 				m.GetByMaterialIDFn = func(_ context.Context, _ uuid.UUID) (*pgentities.Assessment, error) {
-					return &pgentities.Assessment{ID: assessmentID, MaterialID: &materialID, Status: "published"}, nil
+					return &pgentities.Assessment{ID: assessmentID, MongoDocumentID: "mongo123", Status: "published"}, nil
 				}
 			},
 			setupM: func(m *mock.MockMongoAssessmentRepository) {
-				m.GetByMaterialIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
+				m.GetByObjectIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
 					return &mongoentities.MaterialAssessment{
 						Questions: []mongoentities.Question{
 							{QuestionID: "q1", QuestionText: "Test?", QuestionType: "multiple_choice", Points: 1, Difficulty: "easy"},
@@ -130,7 +130,7 @@ func TestAssessmentHandler_CreateAttempt(t *testing.T) {
 			setAuth: true,
 			setupA: func(m *mock.MockAssessmentRepository) {
 				m.GetByMaterialIDFn = func(_ context.Context, _ uuid.UUID) (*pgentities.Assessment, error) {
-					return &pgentities.Assessment{ID: assessmentID, MaterialID: &materialID}, nil
+					return &pgentities.Assessment{ID: assessmentID, MongoDocumentID: "mongo123"}, nil
 				}
 			},
 			setupAtt: func(m *mock.MockAttemptRepository) {
@@ -139,7 +139,7 @@ func TestAssessmentHandler_CreateAttempt(t *testing.T) {
 				}
 			},
 			setupM: func(m *mock.MockMongoAssessmentRepository) {
-				m.GetByMaterialIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
+				m.GetByObjectIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
 					return &mongoentities.MaterialAssessment{
 						Questions: []mongoentities.Question{
 							{QuestionType: "multiple_choice", CorrectAnswer: "B", Points: 1},
@@ -218,7 +218,6 @@ func TestAssessmentHandler_CreateAttempt(t *testing.T) {
 func TestAssessmentHandler_GetAttemptResult(t *testing.T) {
 	attemptID := uuid.New()
 	assessmentID := uuid.New()
-	materialID := uuid.New()
 	score := 1.0
 	maxScore := 1.0
 	pct := 100.0
@@ -249,11 +248,11 @@ func TestAssessmentHandler_GetAttemptResult(t *testing.T) {
 			},
 			setupA: func(m *mock.MockAssessmentRepository) {
 				m.GetByIDFn = func(_ context.Context, _ uuid.UUID) (*pgentities.Assessment, error) {
-					return &pgentities.Assessment{ID: assessmentID, MaterialID: &materialID}, nil
+					return &pgentities.Assessment{ID: assessmentID, MongoDocumentID: "mongo123"}, nil
 				}
 			},
 			setupM: func(m *mock.MockMongoAssessmentRepository) {
-				m.GetByMaterialIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
+				m.GetByObjectIDFn = func(_ context.Context, _ string) (*mongoentities.MaterialAssessment, error) {
 					return &mongoentities.MaterialAssessment{Questions: nil}, nil
 				}
 			},

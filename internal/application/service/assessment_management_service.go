@@ -20,21 +20,24 @@ import (
 
 // AssessmentManagementService handles assessment CRUD and question management.
 type AssessmentManagementService struct {
-	assessmentRepo      repository.AssessmentRepository
-	mongoAssessmentRepo repository.MongoAssessmentRepository
-	log                 logger.Logger
+	assessmentRepo         repository.AssessmentRepository
+	assessmentMaterialRepo repository.AssessmentMaterialRepository
+	mongoAssessmentRepo    repository.MongoAssessmentRepository
+	log                    logger.Logger
 }
 
 // NewAssessmentManagementService creates a new AssessmentManagementService.
 func NewAssessmentManagementService(
 	assessmentRepo repository.AssessmentRepository,
+	assessmentMaterialRepo repository.AssessmentMaterialRepository,
 	mongoAssessmentRepo repository.MongoAssessmentRepository,
 	log logger.Logger,
 ) *AssessmentManagementService {
 	return &AssessmentManagementService{
-		assessmentRepo:      assessmentRepo,
-		mongoAssessmentRepo: mongoAssessmentRepo,
-		log:                 log,
+		assessmentRepo:         assessmentRepo,
+		assessmentMaterialRepo: assessmentMaterialRepo,
+		mongoAssessmentRepo:    mongoAssessmentRepo,
+		log:                    log,
 	}
 }
 
@@ -76,9 +79,30 @@ func (s *AssessmentManagementService) ListAssessments(ctx context.Context, schoo
 		return nil, err
 	}
 
+	// Collect all material IDs to fetch titles in a single query
+	materialIDSet := make(map[uuid.UUID]struct{})
+	for _, a := range assessments {
+		for _, m := range a.Materials {
+			materialIDSet[m.MaterialID] = struct{}{}
+		}
+	}
+	var allMaterialIDs []uuid.UUID
+	for id := range materialIDSet {
+		allMaterialIDs = append(allMaterialIDs, id)
+	}
+
+	titles := map[uuid.UUID]string{}
+	if len(allMaterialIDs) > 0 {
+		var titleErr error
+		titles, titleErr = s.assessmentMaterialRepo.GetMaterialTitles(ctx, allMaterialIDs)
+		if titleErr != nil {
+			s.log.Warn("failed to fetch material titles for list", "error", titleErr)
+		}
+	}
+
 	items := make([]dto.AssessmentManagementResponse, len(assessments))
 	for i, a := range assessments {
-		items[i] = toManagementResponse(&a)
+		items[i] = toManagementResponse(&a, titles)
 	}
 
 	return &dto.PaginatedResponse{
@@ -96,9 +120,12 @@ func (s *AssessmentManagementService) GetAssessmentDetail(ctx context.Context, i
 		return nil, err
 	}
 
+	// Fetch material titles
+	titles := s.fetchMaterialTitles(ctx, assessment.Materials)
+
 	resp := &dto.AssessmentDetailResponse{
-		AssessmentManagementResponse: toManagementResponse(assessment),
-		Questions:                   []dto.TeacherQuestionResponse{},
+		AssessmentManagementResponse: toManagementResponse(assessment, titles),
+		Questions:                    []dto.TeacherQuestionResponse{},
 	}
 
 	if assessment.MongoDocumentID != "" {
@@ -120,15 +147,8 @@ func (s *AssessmentManagementService) GetAssessmentDetail(ctx context.Context, i
 func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req dto.CreateAssessmentRequest, schoolID, userID uuid.UUID) (*dto.AssessmentManagementResponse, error) {
 	now := time.Now()
 
-	// Determine material_id for the MongoDB document
-	materialIDStr := ""
-	if req.MaterialID != nil {
-		materialIDStr = req.MaterialID.String()
-	}
-
 	// Create MongoDB document first (empty questions for manual assessment)
 	mongoDoc := &mongoentities.MaterialAssessment{
-		MaterialID:     materialIDStr,
 		Questions:      []mongoentities.Question{},
 		TotalQuestions: 0,
 		TotalPoints:    0,
@@ -145,26 +165,44 @@ func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req 
 
 	// Create PostgreSQL record
 	title := req.Title
-	passThreshold := 70
+	passThreshold := 70.0
 	if req.PassThreshold != nil {
 		passThreshold = *req.PassThreshold
 	}
 
+	description := req.Description
+
 	assessment := &pgentities.Assessment{
 		ID:              uuid.New(),
-		MaterialID:      req.MaterialID,
 		MongoDocumentID: mongoID,
 		SchoolID:        &schoolID,
 		CreatedByUserID: &userID,
 		QuestionsCount:  0,
 		Title:           &title,
+		Description:     &description,
 		PassThreshold:   &passThreshold,
-		MaxAttempts:     req.MaxAttempts,
+		MaxAttempts:     dto.ToInt(req.MaxAttempts),
 		TimeLimitMinutes: req.TimeLimitMinutes,
 		Status:          "draft",
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
+
+	// Set boolean fields from request
+	if req.IsTimed != nil {
+		assessment.IsTimed = *req.IsTimed
+	}
+	if req.ShuffleQuestions != nil {
+		assessment.ShuffleQuestions = *req.ShuffleQuestions
+	}
+	if req.ShowCorrectAnswers != nil {
+		assessment.ShowCorrectAnswers = *req.ShowCorrectAnswers
+	} else {
+		assessment.ShowCorrectAnswers = true // default
+	}
+
+	assessment.AvailableFrom = req.AvailableFrom
+	assessment.AvailableUntil = req.AvailableUntil
 
 	if err := s.assessmentRepo.Create(ctx, assessment); err != nil {
 		// Compensating delete: remove the orphaned MongoDB document
@@ -175,13 +213,36 @@ func (s *AssessmentManagementService) CreateAssessment(ctx context.Context, req 
 		return nil, err
 	}
 
+	// Insert assessment_materials if provided
+	materialIDs, parseErr := parseMaterialIDs(req.MaterialIDs)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	if len(materialIDs) > 0 {
+		if err := s.assessmentMaterialRepo.ReplaceForAssessment(ctx, assessment.ID, materialIDs); err != nil {
+			// Compensating: delete assessment and MongoDB doc
+			s.log.Error("failed to create assessment materials, rolling back",
+				"error", err, "assessment_id", assessment.ID)
+			_ = s.assessmentRepo.SoftDelete(ctx, assessment.ID)
+			_ = s.mongoAssessmentRepo.Delete(ctx, mongoID)
+			return nil, errors.NewInternalError("failed to create assessment materials", err)
+		}
+
+		// Load the materials we just created for the response
+		mats, matErr := s.assessmentMaterialRepo.GetByAssessment(ctx, assessment.ID)
+		if matErr == nil {
+			assessment.Materials = mats
+		}
+	}
+
 	s.log.Info("manual assessment created",
 		"assessment_id", assessment.ID,
 		"school_id", schoolID,
 		"created_by", userID,
 	)
 
-	resp := toManagementResponse(assessment)
+	titles := s.fetchMaterialTitles(ctx, assessment.Materials)
+	resp := toManagementResponse(assessment, titles)
 	return &resp, nil
 }
 
@@ -199,21 +260,57 @@ func (s *AssessmentManagementService) UpdateAssessment(ctx context.Context, id u
 	if req.Title != nil {
 		assessment.Title = req.Title
 	}
+	if req.Description != nil {
+		assessment.Description = req.Description
+	}
 	if req.PassThreshold != nil {
 		assessment.PassThreshold = req.PassThreshold
 	}
 	if req.MaxAttempts != nil {
-		assessment.MaxAttempts = req.MaxAttempts
+		assessment.MaxAttempts = dto.ToInt(req.MaxAttempts)
 	}
 	if req.TimeLimitMinutes != nil {
 		assessment.TimeLimitMinutes = req.TimeLimitMinutes
+	}
+	if req.IsTimed != nil {
+		assessment.IsTimed = *req.IsTimed
+	}
+	if req.ShuffleQuestions != nil {
+		assessment.ShuffleQuestions = *req.ShuffleQuestions
+	}
+	if req.ShowCorrectAnswers != nil {
+		assessment.ShowCorrectAnswers = *req.ShowCorrectAnswers
+	}
+	if req.AvailableFrom != nil {
+		assessment.AvailableFrom = req.AvailableFrom
+	}
+	if req.AvailableUntil != nil {
+		assessment.AvailableUntil = req.AvailableUntil
 	}
 
 	if err := s.assessmentRepo.Update(ctx, assessment); err != nil {
 		return nil, err
 	}
 
-	resp := toManagementResponse(assessment)
+	// Replace assessment_materials if provided
+	if req.MaterialIDs != nil {
+		materialIDs, parseErr := parseMaterialIDs(req.MaterialIDs)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		if err := s.assessmentMaterialRepo.ReplaceForAssessment(ctx, id, materialIDs); err != nil {
+			return nil, errors.NewInternalError("failed to update assessment materials", err)
+		}
+
+		// Reload the materials for the response
+		mats, matErr := s.assessmentMaterialRepo.GetByAssessment(ctx, id)
+		if matErr == nil {
+			assessment.Materials = mats
+		}
+	}
+
+	titles := s.fetchMaterialTitles(ctx, assessment.Materials)
+	resp := toManagementResponse(assessment, titles)
 	return &resp, nil
 }
 
@@ -239,7 +336,8 @@ func (s *AssessmentManagementService) PublishAssessment(ctx context.Context, id 
 	}
 
 	s.log.Info("assessment published", "assessment_id", id)
-	resp := toManagementResponse(assessment)
+	titles := s.fetchMaterialTitles(ctx, assessment.Materials)
+	resp := toManagementResponse(assessment, titles)
 	return &resp, nil
 }
 
@@ -260,7 +358,8 @@ func (s *AssessmentManagementService) ArchiveAssessment(ctx context.Context, id 
 	}
 
 	s.log.Info("assessment archived", "assessment_id", id)
-	resp := toManagementResponse(assessment)
+	titles := s.fetchMaterialTitles(ctx, assessment.Materials)
+	resp := toManagementResponse(assessment, titles)
 	return &resp, nil
 }
 
@@ -457,25 +556,83 @@ func (s *AssessmentManagementService) DeleteQuestion(ctx context.Context, assess
 
 // --- Helpers ---
 
-func toManagementResponse(a *pgentities.Assessment) dto.AssessmentManagementResponse {
+func toManagementResponse(a *pgentities.Assessment, materialTitles map[uuid.UUID]string) dto.AssessmentManagementResponse {
 	title := ""
 	if a.Title != nil {
 		title = *a.Title
 	}
-	return dto.AssessmentManagementResponse{
-		ID:               a.ID,
-		MaterialID:       a.MaterialID,
-		Title:            title,
-		QuestionsCount:   a.QuestionsCount,
-		PassThreshold:    a.PassThreshold,
-		MaxAttempts:      a.MaxAttempts,
-		TimeLimitMinutes: a.TimeLimitMinutes,
-		Status:           a.Status,
-		SchoolID:         a.SchoolID,
-		CreatedByUserID:  a.CreatedByUserID,
-		CreatedAt:        a.CreatedAt,
-		UpdatedAt:        a.UpdatedAt,
+	description := ""
+	if a.Description != nil {
+		description = *a.Description
 	}
+
+	// Build material IDs and summaries from preloaded Materials
+	materialIDs := make([]string, 0, len(a.Materials))
+	materials := make([]dto.MaterialSummaryDTO, 0, len(a.Materials))
+	for _, m := range a.Materials {
+		mid := m.MaterialID.String()
+		materialIDs = append(materialIDs, mid)
+		matTitle := ""
+		if materialTitles != nil {
+			matTitle = materialTitles[m.MaterialID]
+		}
+		materials = append(materials, dto.MaterialSummaryDTO{
+			ID:    mid,
+			Title: matTitle,
+		})
+	}
+
+	return dto.AssessmentManagementResponse{
+		ID:                 a.ID,
+		Title:              title,
+		Description:        description,
+		QuestionsCount:     a.QuestionsCount,
+		MaterialIDs:        materialIDs,
+		Materials:          materials,
+		PassThreshold:      a.PassThreshold,
+		MaxAttempts:        a.MaxAttempts,
+		TimeLimitMinutes:   a.TimeLimitMinutes,
+		IsTimed:            a.IsTimed,
+		ShuffleQuestions:   a.ShuffleQuestions,
+		ShowCorrectAnswers: a.ShowCorrectAnswers,
+		AvailableFrom:      a.AvailableFrom,
+		AvailableUntil:     a.AvailableUntil,
+		Status:             a.Status,
+		SchoolID:           a.SchoolID,
+		CreatedByUserID:    a.CreatedByUserID,
+		CreatedAt:          a.CreatedAt,
+		UpdatedAt:          a.UpdatedAt,
+	}
+}
+
+// parseMaterialIDs converts string IDs to UUIDs.
+func parseMaterialIDs(ids []string) ([]uuid.UUID, error) {
+	result := make([]uuid.UUID, 0, len(ids))
+	for _, idStr := range ids {
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			return nil, errors.NewValidationError(fmt.Sprintf("invalid material_id: %s", idStr))
+		}
+		result = append(result, id)
+	}
+	return result, nil
+}
+
+// fetchMaterialTitles loads titles for the given assessment materials.
+func (s *AssessmentManagementService) fetchMaterialTitles(ctx context.Context, materials []pgentities.AssessmentMaterial) map[uuid.UUID]string {
+	if len(materials) == 0 {
+		return nil
+	}
+	ids := make([]uuid.UUID, len(materials))
+	for i, m := range materials {
+		ids[i] = m.MaterialID
+	}
+	titles, err := s.assessmentMaterialRepo.GetMaterialTitles(ctx, ids)
+	if err != nil {
+		s.log.Warn("failed to fetch material titles", "error", err)
+		return nil
+	}
+	return titles
 }
 
 func toTeacherQuestions(questions []mongoentities.Question) []dto.TeacherQuestionResponse {
