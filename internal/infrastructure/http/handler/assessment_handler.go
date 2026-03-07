@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,7 @@ import (
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/application/dto"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/application/service"
 	"github.com/EduGoGroup/edugo-api-mobile-new/internal/infrastructure/http/middleware"
+	sharedErrors "github.com/EduGoGroup/edugo-shared/common/errors"
 	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 )
 
@@ -184,4 +186,127 @@ type invalidIntError struct {
 
 func (e *invalidIntError) Error() string {
 	return "invalid integer: " + e.s
+}
+
+// StartAttempt godoc
+// @Summary Start a progressive assessment attempt
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Assessment ID (UUID)"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /assessments/{id}/start [post]
+func (h *AssessmentHandler) StartAttempt(c *gin.Context) {
+	assessmentID, err := parseUUIDParam(c, "id")
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	userID, err := getUserID(c)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	result, err := h.svc.StartAttempt(c.Request.Context(), assessmentID, userID)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+	c.JSON(http.StatusCreated, result)
+}
+
+// SaveAnswer godoc
+// @Summary Save a single answer for a progressive attempt
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Attempt ID (UUID)"
+// @Param questionIndex path int true "Question index"
+// @Param request body dto.SaveAnswerRequest true "Answer data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /attempts/{id}/answers/{questionIndex} [put]
+func (h *AssessmentHandler) SaveAnswer(c *gin.Context) {
+	attemptID, err := parseUUIDParam(c, "id")
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	questionIndex, err := strconv.Atoi(c.Param("questionIndex"))
+	if err != nil {
+		middleware.HandleError(c, sharedErrors.NewValidationError("questionIndex must be a valid integer"))
+		return
+	}
+
+	userID, err := getUserID(c)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	var req dto.SaveAnswerRequest
+	if err := bindJSON(c, &req); err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	result, err := h.svc.SaveAnswer(c.Request.Context(), attemptID, questionIndex, userID, req)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// SubmitAttempt godoc
+// @Summary Submit and finalize a progressive attempt
+// @Tags assessments
+// @Accept json
+// @Produce json
+// @Param id path string true "Attempt ID (UUID)"
+// @Param request body dto.SubmitAttemptRequest false "Optional remaining answers"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /attempts/{id}/submit [post]
+func (h *AssessmentHandler) SubmitAttempt(c *gin.Context) {
+	attemptID, err := parseUUIDParam(c, "id")
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	userID, err := getUserID(c)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+
+	var req dto.SubmitAttemptRequest
+	// Body is optional, ignore bind errors for empty body
+	_ = c.ShouldBindJSON(&req)
+
+	result, err := h.svc.SubmitAttempt(c.Request.Context(), attemptID, userID, req)
+	if err != nil {
+		middleware.HandleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
 }

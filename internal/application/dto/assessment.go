@@ -87,3 +87,37 @@ type AnswerResultResponse struct {
 	MaxPoints     *float64 `json:"max_points"`
 	Explanation   string   `json:"explanation"`
 }
+
+// StartAttemptResponse is the response after starting a progressive attempt.
+type StartAttemptResponse struct {
+	AttemptID         uuid.UUID          `json:"attempt_id"`
+	AssessmentID      uuid.UUID          `json:"assessment_id"`
+	Title             *string            `json:"title,omitempty"`
+	QuestionsCount    int                `json:"questions_count"`
+	PassThreshold     *float64           `json:"pass_threshold,omitempty"`
+	MaxAttempts       *int               `json:"max_attempts,omitempty"`
+	RemainingAttempts *int               `json:"remaining_attempts,omitempty"`
+	TimeLimitMin      *float64           `json:"time_limit_minutes,omitempty"`
+	IsTimed           bool               `json:"is_timed"`
+	ShuffleQuestions  bool               `json:"shuffle_questions"`
+	Questions         []QuestionResponse `json:"questions"`
+	StartedAt         time.Time          `json:"started_at"`
+}
+
+// SaveAnswerRequest is the payload for saving a single answer progressively.
+type SaveAnswerRequest struct {
+	Answer           string `json:"answer" binding:"required"`
+	TimeSpentSeconds *int   `json:"time_spent_seconds"`
+}
+
+// SaveAnswerResponse is the response after saving a single answer.
+type SaveAnswerResponse struct {
+	QuestionIndex int       `json:"question_index"`
+	Saved         bool      `json:"saved"`
+	AnsweredAt    time.Time `json:"answered_at"`
+}
+
+// SubmitAttemptRequest is the payload for finalizing an attempt.
+type SubmitAttemptRequest struct {
+	Answers []AnswerSubmission `json:"answers,omitempty"`
+}
