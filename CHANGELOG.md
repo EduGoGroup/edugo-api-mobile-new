@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.11.0] - 2026-03-07
+
+### Tipo de Release: patch
+
+- feat: assessment CRUD with N:N materials and SDUI field system (#22)
+
+---
+
 ## [0.10.0] - 2026-03-06
 
 ### Tipo de Release: patch
