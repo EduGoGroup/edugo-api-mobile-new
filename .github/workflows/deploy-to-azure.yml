@@ -22,6 +22,9 @@ permissions:
   packages: read   # Para leer imágenes de GHCR
 
 env:
+  # Prueba desde ya la ejecución de GitHub JS Actions sobre Node 24
+  # antes de que se vuelva el default global.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   CONTAINER_APP_NAME: edugo-api-mobile-new
