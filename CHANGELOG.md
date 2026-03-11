@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.12.0] - 2026-03-11
+
+### Tipo de Release: patch
+
+- Update dependencies in go.sum to latest versions
+- feat: UI review improvements — Makefile updates and documentation
+- update (#24)
+- feat: assessment question start, answer, and submit endpoints (#23)
+- chore: upgrade shared common/v0.54.0 + repository/v0.4.0, regenerate swagger
+- fix: resolve Copilot review comments on PR #22
+- feat: assessment CRUD - N:N materials, NUMERIC fields, full management
+- fix: guardian route permissions (#20)
+- feat(mobile-api): AuditMiddleware + explicit audit logging (#18)
+
+---
+
 ## [0.11.0] - 2026-03-07
 
 ### Tipo de Release: patch
