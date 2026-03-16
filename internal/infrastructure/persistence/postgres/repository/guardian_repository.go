@@ -48,17 +48,17 @@ func (r *GuardianRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgenti
 // GetByIDAndSchool retrieves a guardian relation scoped to a school (via student membership).
 func (r *GuardianRepository) GetByIDAndSchool(ctx context.Context, id, schoolID uuid.UUID) (*pgentities.GuardianRelation, error) {
 	var rel pgentities.GuardianRelation
-	err := r.db.WithContext(ctx).
+	result := r.db.WithContext(ctx).
 		Raw(`SELECT gr.*
 			FROM academic.guardian_relations gr
 			JOIN academic.memberships m ON m.user_id = gr.student_id
 			WHERE gr.id = ? AND m.school_id = ?
 			LIMIT 1`, id, schoolID).
-		Scan(&rel).Error
-	if err != nil {
-		return nil, sharedErrors.NewDatabaseError("get guardian relation by school", err)
+		Scan(&rel)
+	if result.Error != nil {
+		return nil, sharedErrors.NewDatabaseError("get guardian relation by school", result.Error)
 	}
-	if rel.ID == uuid.Nil {
+	if result.RowsAffected == 0 {
 		return nil, sharedErrors.NewNotFoundError("guardian relation")
 	}
 	return &rel, nil
