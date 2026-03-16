@@ -4,8 +4,8 @@ github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEK
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/EduGoGroup/edugo-infrastructure/mongodb v0.54.0 h1:aa82w2k5itM1SSiXq/CNOcJxPhOgkoWPir0xX8ZAXxM=
 github.com/EduGoGroup/edugo-infrastructure/mongodb v0.54.0/go.mod h1:5GDvoZAGS9TCmUoxzqn55eg4+ivscr0CRoI//1uRBaE=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.1 h1:U1L7ev0H5IL560kck6Pyzt3/588PYvXnuF+v1AJTT6A=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.1/go.mod h1:6IJ/Od11T2tO+cJMwp3VO4+4AyfgW9357auGeiXf5go=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.2 h1:L2g8VkHRnqMEGrx8FZXUZHQtjjE1XGVqBPMm3lL+c6Q=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.2/go.mod h1:hkAdXvfG1I9uInn0+UCLurRRVqdP3TBLX84GvEEN0QU=
 github.com/EduGoGroup/edugo-shared/audit v0.1.0 h1:MZ9/HcQVJUD0beUI0Or76H3wb89nU2kwvc0kfkk31v8=
 github.com/EduGoGroup/edugo-shared/audit v0.1.0/go.mod h1:qUZWN7on6+fnm2TdW0Zw0zBjLawzx/uR0gYVPNPbzBQ=
 github.com/EduGoGroup/edugo-shared/audit/postgres v0.1.2 h1:9j6oSIzwZ5RZCQIfCzIwCpauda38l9NlfZ0bOuUcveg=
@@ -22,10 +22,10 @@ github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1 h1:8bkiGmLPNy509HuDh
 github.com/EduGoGroup/edugo-shared/messaging/events v0.50.1/go.mod h1:+sPZDCWXbwfA31nscjCFThU9eHOKGvTz0pLCmJTKD/o=
 github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3 h1:O+2nhsYd21tw3QyMKsK/JdweyOb8xPxAAubm5N41FMM=
 github.com/EduGoGroup/edugo-shared/messaging/rabbit v0.50.3/go.mod h1:/dBkkzC8QCHiWJ1FWmmb5OWoq84hjDbC24gH4lVe72M=
-github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.1 h1:/O1fHrMAb++3/EyeVUvPWxa6XoQYLX1UvVNYnYxyUUE=
-github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.1/go.mod h1:OkEeNcb7q9N8D0HV9lj2+GQtM48UrHLtptJk3crwGOs=
-github.com/EduGoGroup/edugo-shared/repository v0.4.2 h1:gHNt90kAjc1xC3oRLbAyqWtvp9wOrak5IwQ1cc4NALY=
-github.com/EduGoGroup/edugo-shared/repository v0.4.2/go.mod h1:sMGAVbWBiKkzCM25XwR+H0qUkGVbxXUk1elxLhkChMk=
+github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.2 h1:QxbH3JsATBkICijcfhoqJDJacPbcIaJYyO6XsraUlZY=
+github.com/EduGoGroup/edugo-shared/middleware/gin v0.51.2/go.mod h1:U5oUZ0YuTQi5bGeLLxVPH8EBrYDmg1K33aiHeeeRBGs=
+github.com/EduGoGroup/edugo-shared/repository v0.4.3 h1:EJAIFawOTaMxZ41jhEdBGFyxgrS/iTQIk6KiChiCepc=
+github.com/EduGoGroup/edugo-shared/repository v0.4.3/go.mod h1:8qJ6hiwnoc+mV7bNdz+NW6I04jC6Sqrnaqu9holGNZM=
 github.com/EduGoGroup/edugo-shared/testing v0.50.0 h1:n5drXtkyshMxDlpW33LLc55zLl9iVC/GvMsR/loM7YQ=
 github.com/EduGoGroup/edugo-shared/testing v0.50.0/go.mod h1:hK/moGdh2lmd1B1G9wAh6gZ8eppf5ZehTkotQgsQtDs=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
