@@ -49,16 +49,17 @@ func (r *GuardianRepository) GetByID(ctx context.Context, id uuid.UUID) (*pgenti
 func (r *GuardianRepository) GetByIDAndSchool(ctx context.Context, id, schoolID uuid.UUID) (*pgentities.GuardianRelation, error) {
 	var rel pgentities.GuardianRelation
 	err := r.db.WithContext(ctx).
-		Table("academic.guardian_relations gr").
-		Select("gr.*").
-		Joins("JOIN academic.memberships m ON m.user_id = gr.student_id").
-		Where("gr.id = ? AND m.school_id = ?", id, schoolID).
-		First(&rel).Error
+		Raw(`SELECT gr.*
+			FROM academic.guardian_relations gr
+			JOIN academic.memberships m ON m.user_id = gr.student_id
+			WHERE gr.id = ? AND m.school_id = ?
+			LIMIT 1`, id, schoolID).
+		Scan(&rel).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, sharedErrors.NewNotFoundError("guardian relation")
-		}
 		return nil, sharedErrors.NewDatabaseError("get guardian relation by school", err)
+	}
+	if rel.ID == uuid.Nil {
+		return nil, sharedErrors.NewNotFoundError("guardian relation")
 	}
 	return &rel, nil
 }
@@ -83,16 +84,16 @@ func (r *GuardianRepository) ListPendingBySchool(ctx context.Context, schoolID u
 	var results []repository.GuardianRelationJoined
 
 	err := r.db.WithContext(ctx).
-		Table("academic.guardian_relations gr").
-		Select(`gr.*,
+		Raw(`SELECT gr.*,
 			CONCAT(gu.first_name, ' ', gu.last_name) AS guardian_name,
-			CONCAT(su.first_name, ' ', su.last_name) AS student_name`).
-		Joins("JOIN auth.users gu ON gu.id = gr.guardian_id").
-		Joins("JOIN auth.users su ON su.id = gr.student_id").
-		Joins("JOIN academic.memberships m ON m.user_id = gr.student_id").
-		Where("gr.status = ? AND gr.is_active = ? AND m.school_id = ?", "pending", true, schoolID).
-		Order("gr.created_at DESC").
-		Find(&results).Error
+			CONCAT(su.first_name, ' ', su.last_name) AS student_name
+			FROM academic.guardian_relations gr
+			JOIN auth.users gu ON gu.id = gr.guardian_id
+			JOIN auth.users su ON su.id = gr.student_id
+			JOIN academic.memberships m ON m.user_id = gr.student_id
+			WHERE gr.status = ? AND gr.is_active = ? AND m.school_id = ?
+			ORDER BY gr.created_at DESC`, "pending", true, schoolID).
+		Scan(&results).Error
 	if err != nil {
 		return nil, sharedErrors.NewDatabaseError("list pending guardian relations", err)
 	}
@@ -104,11 +105,11 @@ func (r *GuardianRepository) ListActiveChildrenByGuardian(ctx context.Context, g
 	var results []repository.ChildJoined
 
 	err := r.db.WithContext(ctx).
-		Table("academic.guardian_relations gr").
-		Select("u.id, u.first_name, u.last_name, u.email").
-		Joins("JOIN auth.users u ON u.id = gr.student_id").
-		Where("gr.guardian_id = ? AND gr.status = ? AND gr.is_active = ?", guardianID, "active", true).
-		Find(&results).Error
+		Raw(`SELECT u.id, u.first_name, u.last_name, u.email
+			FROM academic.guardian_relations gr
+			JOIN auth.users u ON u.id = gr.student_id
+			WHERE gr.guardian_id = ? AND gr.status = ? AND gr.is_active = ?`, guardianID, "active", true).
+		Scan(&results).Error
 	if err != nil {
 		return nil, sharedErrors.NewDatabaseError("list guardian children", err)
 	}
