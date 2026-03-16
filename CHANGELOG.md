@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2026-02-24
 
 
+## [0.13.0] - 2026-03-16
+
+### Tipo de Release: patch
+
+- fix: use RowsAffected instead of uuid.Nil for not-found detection in GetByIDAndSchool
+- Use raw SQL for guardian queries
+- update dependencia
+- feat: enable Node 24 for GitHub Actions in Azure deployment workflow
+
+---
+
 ## [0.12.0] - 2026-03-11
 
 ### Tipo de Release: patch
